@@ -346,7 +346,6 @@ def remove_admin_by_id(message):
     except ValueError:
         bot.reply_to(message, "❌ Введите корректный ID (только цифры)")
 
-# ===== КОМАНДА /admins_list =====
 @bot.message_handler(commands=['admins_list'])
 def admins_list(message):
     if not has_tournament_access(message.from_user.id):
@@ -354,20 +353,35 @@ def admins_list(message):
         return
 
     admins = load_admins()
+    
+    text = "👥 *СПИСОК АДМИНОВ*\n\n"
+    
+    # Сначала показываем владельца
+    try:
+        owner = bot.get_chat(OWNER_ID)
+        owner_name = owner.first_name or "Владелец"
+        if owner.last_name:
+            owner_name += f" {owner.last_name}"
+        text += f"👑 *Владелец:* {owner_name}\n\n"
+    except:
+        text += f"👑 *Владелец:* ID: `{OWNER_ID}`\n\n"
+    
     if not admins:
-        bot.reply_to(message, "👥 Список админов пуст.")
+        text += "📭 Список админов пуст."
+        bot.reply_to(message, text, parse_mode="Markdown")
         return
 
-    text = "👥 *Список админов:*\n\n"
+    text += "🛡️ *Администраторы:*\n"
     for i, admin_id in enumerate(admins, 1):
         try:
             user = bot.get_chat(admin_id)
-            username = user.username or f"ID: {admin_id}"
-            text += f"{i}. @{username}\n"
+            user_name = user.first_name or "Админ"
+            if user.last_name:
+                user_name += f" {user.last_name}"
+            text += f"{i}. {user_name}\n"
         except:
             text += f"{i}. ID: `{admin_id}`\n"
-    
-    text += f"\n👑 Владелец: `{OWNER_ID}`"
+
     bot.reply_to(message, text, parse_mode="Markdown")
 
 # ===== КОМАНДА /register_players =====
