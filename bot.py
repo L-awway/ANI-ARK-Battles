@@ -662,11 +662,9 @@ def get_qualified_teams(data):
     qualified = []
     third_placed = []
 
-    # Собираем все команды по местам
     for group_name, group_data in data["groups"].items():
         sorted_teams = sort_teams(group_data["teams"])
         
-        # 1-е место
         if len(sorted_teams) >= 1:
             qualified.append({
                 "name": sorted_teams[0]["name"],
@@ -676,7 +674,6 @@ def get_qualified_teams(data):
                 "diff": sorted_teams[0]["goals_for"] - sorted_teams[0]["goals_against"],
                 "goals_for": sorted_teams[0]["goals_for"]
             })
-        # 2-е место
         if len(sorted_teams) >= 2:
             qualified.append({
                 "name": sorted_teams[1]["name"],
@@ -686,7 +683,6 @@ def get_qualified_teams(data):
                 "diff": sorted_teams[1]["goals_for"] - sorted_teams[1]["goals_against"],
                 "goals_for": sorted_teams[1]["goals_for"]
             })
-        # 3-е место (добавляем в отдельный список для сортировки)
         if len(sorted_teams) >= 3:
             third_placed.append({
                 "name": sorted_teams[2]["name"],
@@ -697,7 +693,7 @@ def get_qualified_teams(data):
                 "goals_for": sorted_teams[2]["goals_for"]
             })
 
-    # Сортируем 3-и места по: очки → разница → забитые голы
+    # Сортируем 3-и места
     third_placed.sort(key=lambda x: (x["points"], x["diff"], x["goals_for"]), reverse=True)
 
     # Определяем, сколько 3-х мест нужно добрать до степени двойки
@@ -711,15 +707,26 @@ def get_qualified_teams(data):
         qualified.append(third_placed[i])
 
     return qualified
-    
+
+
 def generate_playoff_pairs(qualified, groups_count):
     """Генерирует пары для плей-офф"""
     if len(qualified) < 2:
         return [], ""
 
     total = len(qualified)
-    first_round = "1/16" if total == 32 else "1/8"
+    
+    # Определяем раунд
+    if total == 32:
+        first_round = "1/16"
+    elif total == 16:
+        first_round = "1/8"
+    elif total == 8:
+        first_round = "1/4"
+    else:
+        first_round = "1/8"
 
+    # Разделяем по местам
     first_place = [t for t in qualified if t["place"] == 1]
     second_place = [t for t in qualified if t["place"] == 2]
     third_place = [t for t in qualified if t["place"] == 3]
@@ -730,7 +737,9 @@ def generate_playoff_pairs(qualified, groups_count):
 
     pairs = []
 
-    if total == 32 and third_place:
+    # Если есть третьи места (24, 48 участников)
+    if third_place:
+        # Сначала 1-е места против 3-х мест (перекрёст)
         for i in range(min(len(first_place), len(third_place))):
             pairs.append({
                 "p1": first_place[i]["name"],
@@ -740,18 +749,36 @@ def generate_playoff_pairs(qualified, groups_count):
                 "score2": None,
                 "is_draw": False
             })
+        
+        # Затем оставшиеся 1-е места против 2-х мест
         remaining_first = first_place[len(third_place):]
+        remaining_second = second_place[:len(remaining_first)]
         for i in range(len(remaining_first)):
-            if i < len(second_place):
+            if i < len(remaining_second):
                 pairs.append({
                     "p1": remaining_first[i]["name"],
-                    "p2": second_place[i]["name"],
+                    "p2": remaining_second[i]["name"],
                     "winner": None,
                     "score1": None,
                     "score2": None,
                     "is_draw": False
                 })
+        
+        # Если пар всё ещё мало — добавляем оставшиеся 2-е места
+        if len(pairs) < total // 2:
+            remaining_second = second_place[len(remaining_first):]
+            for i in range(0, len(remaining_second), 2):
+                if i + 1 < len(remaining_second):
+                    pairs.append({
+                        "p1": remaining_second[i]["name"],
+                        "p2": remaining_second[i + 1]["name"],
+                        "winner": None,
+                        "score1": None,
+                        "score2": None,
+                        "is_draw": False
+                    })
     else:
+        # Классическая схема: 1-е места против 2-х мест
         for i in range(len(first_place)):
             if i < len(second_place):
                 j = (i + 1) % len(second_place)
