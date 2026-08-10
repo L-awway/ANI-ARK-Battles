@@ -31,6 +31,13 @@ def save_tournament(data):
 def is_admin(message):
     return message.from_user.id == OWNER_ID
 
+def safe_save(data):
+    # Сохраняем основной файл
+    save_tournament(data)
+    # И сразу делаем резервную копию
+    with open("tournament_backup.json", "w") as f:
+        json.dump(data, f, indent=2)
+
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 def get_display_name(username):
     return username.replace('@', '')
