@@ -761,7 +761,7 @@ def show_group(message):
 
 # ===== ПЛЕЙ-ОФФ =====
 
-ROUND_NAMES = ["1/16", "1/8", "1/4", "1/2", "Финал"]
+ROUND_NAMES = ["1/16", "1/8", "1/4", "1/2", "Финал", "Матч за 3-е место"]
 
 def get_qualified_teams(data):
     """Определяет, кто вышел из групп (с учётом лучших 3-х мест)"""
@@ -901,7 +901,7 @@ def start_playoff(message):
         return
 
     if data["status"] == "playoff":
-        show_playoff_grid(message, data)
+        show_playoff_full(message, data)
         return
 
     if data["status"] != "groups":
@@ -923,17 +923,19 @@ def start_playoff(message):
         "round": first_round,
         "pairs": pairs,
         "winners": [],
-        "history": []  # История всех сыгранных матчей
+        "history": {}  # История по раундам: {"1/16": [...], "1/8": [...], ...}
     }
     save_tournament(data)
 
-    show_playoff_grid(message, data)
+    show_playoff_full(message, data)
 
-def show_playoff_grid(message, data):
+def show_playoff_full(message, data):
+    """Показывает полный плей-офф с историей"""
     playoff = data["playoff"]
     if not playoff:
         return
 
+    # Текущий раунд
     text = f"🏆 *ПЛЕЙ-ОФФ: {playoff['round'].upper()}*\n\n"
 
     for i, pair in enumerate(playoff["pairs"], 1):
@@ -949,14 +951,20 @@ def show_playoff_grid(message, data):
             status = "⏳ Не сыгран"
         text += f"🔥 {i}. {p1} — {p2} | {status}\n"
 
-    # Показываем историю сыгранных матчей
+    # История по раундам
     if playoff.get("history"):
         text += "\n📜 *ИСТОРИЯ МАТЧЕЙ:*\n"
-        for match in playoff["history"]:
-            p1 = get_display_name(match["p1"])
-            p2 = get_display_name(match["p2"])
-            winner = get_display_name(match["winner"])
-            text += f"• {p1} {match['score1']}:{match['score2']} {p2} → {winner}\n"
+        for round_name, matches in playoff["history"].items():
+            if matches:
+                text += f"\n📋 *{round_name}*\n"
+                for match in matches:
+                    p1 = get_display_name(match["p1"])
+                    p2 = get_display_name(match["p2"])
+                    winner = get_display_name(match["winner"])
+                    if match.get("is_draw", False):
+                        text += f"  🎲 {p1} {match['score1']}:{match['score2']} {p2} → {winner} (по буллитам/кубам)\n"
+                    else:
+                        text += f"  ✅ {p1} {match['score1']}:{match['score2']} {p2} → {winner}\n"
 
     text += "\n📝 Команды:\n"
     text += "`/result_playoff @user1 @user2 3:1` — записать результат\n"
@@ -1019,14 +1027,17 @@ def result_playoff(message):
     found_pair["score2"] = score2
     found_pair["is_draw"] = False
 
-    # Добавляем в историю
-    playoff["history"].append({
+    # Добавляем в историю по раундам
+    current_round = playoff["round"]
+    if current_round not in playoff["history"]:
+        playoff["history"][current_round] = []
+    playoff["history"][current_round].append({
         "p1": p1,
         "p2": p2,
         "score1": score1,
         "score2": score2,
         "winner": found_pair["winner"],
-        "round": playoff["round"]
+        "is_draw": False
     })
 
     playoff["winners"].append(found_pair["winner"])
@@ -1100,13 +1111,15 @@ def result_playoff_draw(message):
     found_pair["score2"] = score2
     found_pair["is_draw"] = True
 
-    playoff["history"].append({
+    current_round = playoff["round"]
+    if current_round not in playoff["history"]:
+        playoff["history"][current_round] = []
+    playoff["history"][current_round].append({
         "p1": p1,
         "p2": p2,
         "score1": score1,
         "score2": score2,
         "winner": winner,
-        "round": playoff["round"],
         "is_draw": True
     })
 
@@ -1137,8 +1150,11 @@ def generate_playoff_results(message):
         bot.reply_to(message, "❌ Плей-офф не запущен.")
         return
 
-    # Генерируем все матчи подряд
-    while True:
+    # Генерируем все матчи последовательно по раундам
+    max_rounds = 10  # Защита от бесконечного цикла
+    round_counter = 0
+    
+    while round_counter < max_rounds:
         playoff = data["playoff"]
         
         # Проверяем, есть ли несыгранные матчи
@@ -1158,13 +1174,15 @@ def generate_playoff_results(message):
                 pair["score1"] = score1
                 pair["score2"] = score2
                 
-                playoff["history"].append({
+                current_round = playoff["round"]
+                if current_round not in playoff["history"]:
+                    playoff["history"][current_round] = []
+                playoff["history"][current_round].append({
                     "p1": pair["p1"],
                     "p2": pair["p2"],
                     "score1": score1,
                     "score2": score2,
                     "winner": pair["winner"],
-                    "round": playoff["round"],
                     "is_draw": pair["is_draw"]
                 })
                 
@@ -1172,23 +1190,22 @@ def generate_playoff_results(message):
                 generated += 1
             save_tournament(data)
             bot.reply_to(message, f"✅ Сгенерировано {generated} матчей в раунде {playoff['round']}!")
-        else:
-            # Все матчи сыграны, пробуем перейти к следующему раунду
-            if not advance_playoff(data):
-                break
-            save_tournament(data)
-            if data["status"] != "playoff":
-                break
-            continue
-
-        # Проверяем, не завершён ли турнир
-        if data["status"] == "finished":
+        
+        # Все матчи сыграны — переходим к следующему раунду
+        if not advance_playoff(data):
             break
+        
+        save_tournament(data)
+        
+        if data["status"] != "playoff":
+            break
+        
+        round_counter += 1
 
     bot.reply_to(message, "✅ Все матчи плей-офф сгенерированы!")
 
 def advance_playoff(data):
-    """Переход к следующему раунду плей-офф (возвращает True, если переход успешен)"""
+    """Переход к следующему раунду плей-офф (возвращает False, если турнир завершён)"""
     playoff = data["playoff"]
     
     # Проверяем, все ли матчи сыграны
@@ -1199,14 +1216,15 @@ def advance_playoff(data):
     winners = [p["winner"] for p in playoff["pairs"]]
     losers = [p["p1"] if p["winner"] == p["p2"] else p["p2"] for p in playoff["pairs"]]
     
-    round_names = ["1/16", "1/8", "1/4", "1/2", "Финал"]
+    round_names = ["1/16", "1/8", "1/4", "1/2"]
     
     # === МАТЧ ЗА 3-Е МЕСТО ===
     if playoff["round"] == "1/2":
         # Проверяем, есть ли уже матч за 3-е место
         if "third_place_match" not in playoff:
-            # Создаём матч за 3-е место
+            # Сохраняем финалистов
             playoff["finalists"] = winners[:2]
+            # Создаём матч за 3-е место
             playoff["third_place_match"] = {
                 "p1": losers[0],
                 "p2": losers[1],
@@ -1223,6 +1241,18 @@ def advance_playoff(data):
         third_match = playoff["third_place_match"]
         if not third_match["winner"]:
             return False  # Ждём, пока сыграют
+        
+        # Добавляем матч за 3-е место в историю
+        if "Матч за 3-е место" not in playoff["history"]:
+            playoff["history"]["Матч за 3-е место"] = []
+        playoff["history"]["Матч за 3-е место"].append({
+            "p1": third_match["p1"],
+            "p2": third_match["p2"],
+            "score1": third_match["score1"],
+            "score2": third_match["score2"],
+            "winner": third_match["winner"],
+            "is_draw": third_match["is_draw"]
+        })
         
         # Матч за 3-е место сыгран — переходим к финалу
         playoff["round"] = "Финал"
@@ -1249,13 +1279,14 @@ def advance_playoff(data):
             # Добавляем финал в историю
             if playoff["pairs"]:
                 final_pair = playoff["pairs"][0]
-                playoff["history"].append({
+                if "Финал" not in playoff["history"]:
+                    playoff["history"]["Финал"] = []
+                playoff["history"]["Финал"].append({
                     "p1": final_pair["p1"],
                     "p2": final_pair["p2"],
                     "score1": final_pair["score1"],
                     "score2": final_pair["score2"],
                     "winner": final_pair["winner"],
-                    "round": "Финал",
                     "is_draw": final_pair.get("is_draw", False)
                 })
             
@@ -1344,14 +1375,14 @@ def result_third_place(message):
     third_match["score2"] = score2
     third_match["is_draw"] = False
 
-    # Добавляем в историю
-    data["playoff"]["history"].append({
+    if "Матч за 3-е место" not in data["playoff"]["history"]:
+        data["playoff"]["history"]["Матч за 3-е место"] = []
+    data["playoff"]["history"]["Матч за 3-е место"].append({
         "p1": p1,
         "p2": p2,
         "score1": score1,
         "score2": score2,
         "winner": third_match["winner"],
-        "round": "Матч за 3-е место",
         "is_draw": False
     })
 
@@ -1414,13 +1445,14 @@ def result_third_place_draw(message):
     third_match["score2"] = score2
     third_match["is_draw"] = True
 
-    data["playoff"]["history"].append({
+    if "Матч за 3-е место" not in data["playoff"]["history"]:
+        data["playoff"]["history"]["Матч за 3-е место"] = []
+    data["playoff"]["history"]["Матч за 3-е место"].append({
         "p1": p1,
         "p2": p2,
         "score1": score1,
         "score2": score2,
         "winner": winner,
-        "round": "Матч за 3-е место",
         "is_draw": True
     })
 
@@ -1453,23 +1485,22 @@ def next_round(message):
             return
 
     # Пытаемся перейти к следующему раунду
-    if advance_playoff(data):
+    if not advance_playoff(data):
+        # Если переход не удался, проверяем статус
         data = load_tournament()
         if data and data["status"] == "finished":
-            champion = data["playoff"]["history"][-1]["winner"] if data["playoff"]["history"] else "неизвестен"
+            champion = data["playoff"]["history"].get("Финал", [{}])[0].get("winner", "неизвестен") if data["playoff"]["history"] else "неизвестен"
             bot.reply_to(
                 message,
                 f"🏆 *ТУРНИР ЗАВЕРШЁН!*\n\n"
                 f"👑 *ЧЕМПИОН:* {get_display_name(champion)}!\n\n"
-                f"Поздравляем победителя! 🎉\n\n"
+                f"🥈 2-е место: {get_display_name(data['playoff']['finalists'][1]) if 'finalists' in data['playoff'] else 'неизвестен'}\n"
+                f"🥉 3-е место: {get_display_name(data['playoff']['third_place_match']['winner']) if 'third_place_match' in data['playoff'] and data['playoff']['third_place_match']['winner'] else 'неизвестен'}\n\n"
                 f"📜 Посмотреть историю матчей: `/playoff`"
             )
             return
         elif data and data["status"] == "playoff":
-            show_playoff_grid(message, data)
-    else:
-        data = load_tournament()
-        if data and data["status"] == "playoff":
+            # Проверяем, не ждём ли мы матч за 3-е место
             if "third_place_match" in data["playoff"] and not data["playoff"]["third_place_match"]["winner"]:
                 third_match = data["playoff"]["third_place_match"]
                 text = "🥉 *МАТЧ ЗА 3-Е МЕСТО*\n\n"
@@ -1481,7 +1512,11 @@ def next_round(message):
                 text += "Или ничью: `/result_third_place_draw @user1 @user2 1:1 @winner`"
                 bot.reply_to(message, text, parse_mode="Markdown")
             else:
-                show_playoff_grid(message, data)
+                show_playoff_full(message, data)
+    else:
+        data = load_tournament()
+        if data and data["status"] == "playoff":
+            show_playoff_full(message, data)
 
 # ===== КОМАНДА /save_tournament =====
 @bot.message_handler(commands=['save_tournament'])
