@@ -87,14 +87,16 @@ def show_group_table(group_data, group_name=None):
     sorted_teams = sort_teams(group_data["teams"])
     text = f"🏆 *Группа {group_name}*\n\n" if group_name else ""
     text += "```\n"
-    text += f"{'Команда':<12} {'И':<3} {'О':<3} {'В':<3} {'Н':<3} {'П':<3} {'З':<3} {'ПР':<3} {'Р':<4}\n"
+    text += f"{'Команда':<12} {'Б':<3} {'О':<3} {'В':<3} {'Н':<3} {'П':<3} {'З':<3} {'ПР':<3} {'Р':<4}\n"
+    # Б — битвы (матчи), В — выигранные битвы, П — проигранные битвы, Н — ничьи
+    # З — выигранные раунды, ПР — проигранные раунды, Р — разница раундов
     text += "-" * 55 + "\n"
     for team in sorted_teams:
         name = get_display_name(team['name'])[:10]
         win_rounds = team['goals_for']
         lose_rounds = team['goals_against']
         diff = win_rounds - lose_rounds
-        text += f"{name:<12} {team['played']:<3} {team['points']:<3} {win_rounds:<3} {team['draws']:<3} {lose_rounds:<3} {win_rounds:<3} {lose_rounds:<3} {diff:>+3}\n"
+        text += f"{name:<12} {team['played']:<3} {team['points']:<3} {team['wins']:<3} {team['draws']:<3} {team['losses']:<3} {win_rounds:<3} {lose_rounds:<3} {diff:>+3}\n"
     text += "```"
     return text
 
