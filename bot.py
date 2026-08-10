@@ -922,7 +922,8 @@ def start_playoff(message):
     data["playoff"] = {
         "round": first_round,
         "pairs": pairs,
-        "winners": []
+        "winners": [],
+        "history": []  # История всех сыгранных матчей
     }
     save_tournament(data)
 
@@ -947,6 +948,15 @@ def show_playoff_grid(message, data):
         else:
             status = "⏳ Не сыгран"
         text += f"🔥 {i}. {p1} — {p2} | {status}\n"
+
+    # Показываем историю сыгранных матчей
+    if playoff.get("history"):
+        text += "\n📜 *ИСТОРИЯ МАТЧЕЙ:*\n"
+        for match in playoff["history"]:
+            p1 = get_display_name(match["p1"])
+            p2 = get_display_name(match["p2"])
+            winner = get_display_name(match["winner"])
+            text += f"• {p1} {match['score1']}:{match['score2']} {p2} → {winner}\n"
 
     text += "\n📝 Команды:\n"
     text += "`/result_playoff @user1 @user2 3:1` — записать результат\n"
@@ -1008,6 +1018,16 @@ def result_playoff(message):
     found_pair["score1"] = score1
     found_pair["score2"] = score2
     found_pair["is_draw"] = False
+
+    # Добавляем в историю
+    playoff["history"].append({
+        "p1": p1,
+        "p2": p2,
+        "score1": score1,
+        "score2": score2,
+        "winner": found_pair["winner"],
+        "round": playoff["round"]
+    })
 
     playoff["winners"].append(found_pair["winner"])
     save_tournament(data)
@@ -1080,6 +1100,16 @@ def result_playoff_draw(message):
     found_pair["score2"] = score2
     found_pair["is_draw"] = True
 
+    playoff["history"].append({
+        "p1": p1,
+        "p2": p2,
+        "score1": score1,
+        "score2": score2,
+        "winner": winner,
+        "round": playoff["round"],
+        "is_draw": True
+    })
+
     playoff["winners"].append(winner)
     save_tournament(data)
 
@@ -1107,14 +1137,13 @@ def generate_playoff_results(message):
         bot.reply_to(message, "❌ Плей-офф не запущен.")
         return
 
-    # Генерируем все матчи, пока турнир не завершится
+    # Генерируем все матчи подряд
     while True:
         playoff = data["playoff"]
         
         # Проверяем, есть ли несыгранные матчи
         unplayed = [p for p in playoff["pairs"] if not p["winner"]]
         if unplayed:
-            # Генерируем текущий раунд
             generated = 0
             for pair in unplayed:
                 score1 = random.randint(0, 3)
@@ -1128,28 +1157,38 @@ def generate_playoff_results(message):
                     pair["is_draw"] = True
                 pair["score1"] = score1
                 pair["score2"] = score2
+                
+                playoff["history"].append({
+                    "p1": pair["p1"],
+                    "p2": pair["p2"],
+                    "score1": score1,
+                    "score2": score2,
+                    "winner": pair["winner"],
+                    "round": playoff["round"],
+                    "is_draw": pair["is_draw"]
+                })
+                
                 playoff["winners"].append(pair["winner"])
                 generated += 1
             save_tournament(data)
-            bot.reply_to(message, f"✅ Сгенерировано {generated} матчей!")
-            # Переходим к следующему раунду
-            next_round_auto(message, data)
-            data = load_tournament()
-            if not data or data["status"] != "playoff":
-                break
+            bot.reply_to(message, f"✅ Сгенерировано {generated} матчей в раунде {playoff['round']}!")
         else:
             # Все матчи сыграны, пробуем перейти к следующему раунду
-            if not next_round_auto(message, data):
-                # Если переход не удался — турнир завершён
+            if not advance_playoff(data):
                 break
-            data = load_tournament()
-            if not data or data["status"] != "playoff":
+            save_tournament(data)
+            if data["status"] != "playoff":
                 break
+            continue
+
+        # Проверяем, не завершён ли турнир
+        if data["status"] == "finished":
+            break
 
     bot.reply_to(message, "✅ Все матчи плей-офф сгенерированы!")
 
-def next_round_auto(message, data):
-    """Автоматический переход к следующему раунду (без проверки прав)"""
+def advance_playoff(data):
+    """Переход к следующему раунду плей-офф (возвращает True, если переход успешен)"""
     playoff = data["playoff"]
     
     # Проверяем, все ли матчи сыграны
@@ -1161,57 +1200,79 @@ def next_round_auto(message, data):
     losers = [p["p1"] if p["winner"] == p["p2"] else p["p2"] for p in playoff["pairs"]]
     
     round_names = ["1/16", "1/8", "1/4", "1/2", "Финал"]
-    current_idx = round_names.index(playoff["round"])
-    next_idx = current_idx + 1
-
+    
     # === МАТЧ ЗА 3-Е МЕСТО ===
-    if playoff["round"] == "1/2" and len(winners) == 2:
-        finalists = winners[:2]
-        third_place_players = losers[:2]
-        
-        data["playoff"]["third_place_match"] = {
-            "p1": third_place_players[0],
-            "p2": third_place_players[1],
-            "winner": None,
-            "score1": None,
-            "score2": None,
-            "is_draw": False
-        }
-        data["playoff"]["finalists"] = finalists
-        data["playoff"]["status"] = "third_place"
-        save_tournament(data)
-        return True
-
-    # === ФИНАЛ ===
-    if playoff["round"] == "1/2" and len(winners) == 2:
-        if "third_place_match" in data["playoff"]:
-            third_match = data["playoff"]["third_place_match"]
-            if not third_match["winner"]:
-                return False
-            
-            finalists = data["playoff"]["finalists"]
-            data["playoff"]["round"] = "Финал"
-            data["playoff"]["pairs"] = [{
-                "p1": finalists[0],
-                "p2": finalists[1],
+    if playoff["round"] == "1/2":
+        # Проверяем, есть ли уже матч за 3-е место
+        if "third_place_match" not in playoff:
+            # Создаём матч за 3-е место
+            playoff["finalists"] = winners[:2]
+            playoff["third_place_match"] = {
+                "p1": losers[0],
+                "p2": losers[1],
                 "winner": None,
                 "score1": None,
                 "score2": None,
                 "is_draw": False
-            }]
-            data["playoff"]["winners"] = []
-            data["playoff"]["status"] = "final"
+            }
+            playoff["status"] = "third_place"
             save_tournament(data)
-            return True
-
-    # === ОБЫЧНЫЙ ПЕРЕХОД ===
+            return False  # Останавливаемся, чтобы сыграть матч за 3-е место
+        
+        # Если матч за 3-е место уже есть, проверяем его
+        third_match = playoff["third_place_match"]
+        if not third_match["winner"]:
+            return False  # Ждём, пока сыграют
+        
+        # Матч за 3-е место сыгран — переходим к финалу
+        playoff["round"] = "Финал"
+        playoff["pairs"] = [{
+            "p1": playoff["finalists"][0],
+            "p2": playoff["finalists"][1],
+            "winner": None,
+            "score1": None,
+            "score2": None,
+            "is_draw": False
+        }]
+        playoff["winners"] = []
+        playoff["status"] = "final"
+        save_tournament(data)
+        return False  # Останавливаемся, чтобы сыграть финал
+    
+    # === ФИНАЛ ===
+    if playoff["round"] == "Финал":
+        # Финал сыгран — завершаем турнир
+        if winners:
+            champion = winners[0]
+            data["status"] = "finished"
+            
+            # Добавляем финал в историю
+            if playoff["pairs"]:
+                final_pair = playoff["pairs"][0]
+                playoff["history"].append({
+                    "p1": final_pair["p1"],
+                    "p2": final_pair["p2"],
+                    "score1": final_pair["score1"],
+                    "score2": final_pair["score2"],
+                    "winner": final_pair["winner"],
+                    "round": "Финал",
+                    "is_draw": final_pair.get("is_draw", False)
+                })
+            
+            save_tournament(data)
+            return True  # Турнир завершён
+    
+    # === ОБЫЧНЫЙ ПЕРЕХОД (1/16 → 1/8 → 1/4 → 1/2) ===
+    current_idx = round_names.index(playoff["round"])
+    next_idx = current_idx + 1
+    
     if next_idx >= len(round_names):
-        champion = winners[0] if winners else "неизвестен"
+        # Если вдруг оказались в конце — завершаем
         data["status"] = "finished"
         save_tournament(data)
-        bot.reply_to(message, f"🏆 *ТУРНИР ЗАВЕРШЁН!*\n\n👑 *ЧЕМПИОН:* {get_display_name(champion)}!\n\nПоздравляем победителя! 🎉")
-        return False
-
+        return True
+    
+    # Формируем пары для следующего раунда
     new_pairs = []
     for i in range(0, len(winners), 2):
         if i + 1 < len(winners):
@@ -1223,7 +1284,7 @@ def next_round_auto(message, data):
                 "score2": None,
                 "is_draw": False
             })
-
+    
     playoff["round"] = round_names[next_idx]
     playoff["pairs"] = new_pairs
     playoff["winners"] = []
@@ -1282,6 +1343,17 @@ def result_third_place(message):
     third_match["score1"] = score1
     third_match["score2"] = score2
     third_match["is_draw"] = False
+
+    # Добавляем в историю
+    data["playoff"]["history"].append({
+        "p1": p1,
+        "p2": p2,
+        "score1": score1,
+        "score2": score2,
+        "winner": third_match["winner"],
+        "round": "Матч за 3-е место",
+        "is_draw": False
+    })
 
     save_tournament(data)
 
@@ -1342,6 +1414,16 @@ def result_third_place_draw(message):
     third_match["score2"] = score2
     third_match["is_draw"] = True
 
+    data["playoff"]["history"].append({
+        "p1": p1,
+        "p2": p2,
+        "score1": score1,
+        "score2": score2,
+        "winner": winner,
+        "round": "Матч за 3-е место",
+        "is_draw": True
+    })
+
     save_tournament(data)
 
     bot.reply_to(
@@ -1371,12 +1453,35 @@ def next_round(message):
             return
 
     # Пытаемся перейти к следующему раунду
-    if next_round_auto(message, data):
+    if advance_playoff(data):
         data = load_tournament()
-        if data and data["status"] == "playoff":
+        if data and data["status"] == "finished":
+            champion = data["playoff"]["history"][-1]["winner"] if data["playoff"]["history"] else "неизвестен"
+            bot.reply_to(
+                message,
+                f"🏆 *ТУРНИР ЗАВЕРШЁН!*\n\n"
+                f"👑 *ЧЕМПИОН:* {get_display_name(champion)}!\n\n"
+                f"Поздравляем победителя! 🎉\n\n"
+                f"📜 Посмотреть историю матчей: `/playoff`"
+            )
+            return
+        elif data and data["status"] == "playoff":
             show_playoff_grid(message, data)
     else:
-        bot.reply_to(message, "ℹ️ Турнир уже завершён.")
+        data = load_tournament()
+        if data and data["status"] == "playoff":
+            if "third_place_match" in data["playoff"] and not data["playoff"]["third_place_match"]["winner"]:
+                third_match = data["playoff"]["third_place_match"]
+                text = "🥉 *МАТЧ ЗА 3-Е МЕСТО*\n\n"
+                p1 = get_display_name(third_match["p1"])
+                p2 = get_display_name(third_match["p2"])
+                text += f"🔥 {p1} — {p2}\n"
+                text += "\n📝 Запишите результат:\n"
+                text += "`/result_third_place @user1 @user2 3:1`\n"
+                text += "Или ничью: `/result_third_place_draw @user1 @user2 1:1 @winner`"
+                bot.reply_to(message, text, parse_mode="Markdown")
+            else:
+                show_playoff_grid(message, data)
 
 # ===== КОМАНДА /save_tournament =====
 @bot.message_handler(commands=['save_tournament'])
