@@ -2,6 +2,7 @@ import telebot
 from telebot import types
 import json
 import os
+import random
 from datetime import datetime
 
 # ===== НАСТРОЙКИ =====
@@ -11,6 +12,7 @@ BOT_TOKEN = "8658074950:AAHwVaOMhAW61ZIWeF7OU4ngaahDwSw48Co"
 OWNER_ID = 7080227092
 
 TOURNAMENT_FILE = "tournament_data.json"
+SAVE_FILE = "tournament_save.json"
 # =====================
 
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -31,24 +33,9 @@ def is_admin(message):
 
 # ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
 def get_display_name(username):
-    """Убирает @ из имени для отображения"""
     return username.replace('@', '')
 
-def get_team_standing(team_name, group_data):
-    """Получает статистику команды в группе"""
-    for team in group_data['teams']:
-        if team['name'] == team_name:
-            return team
-    return None
-
 def sort_teams(teams):
-    """
-    Сортирует команды по:
-    1. Очки (больше = лучше)
-    2. Разница забитых/пропущенных (больше = лучше)
-    3. Забитые голы (больше = лучше)
-    4. Победы (больше = лучше)
-    """
     return sorted(
         teams,
         key=lambda x: (
@@ -60,6 +47,21 @@ def sort_teams(teams):
         reverse=True
     )
 
+def show_group_table(group_data, group_name=None):
+    sorted_teams = sort_teams(group_data["teams"])
+    text = f"🏆 *Группа {group_name}*\n\n" if group_name else ""
+    text += "```\n"
+    text += f"{'Команда':<12} {'И':<3} {'О':<3} {'В':<3} {'Н':<3} {'П':<3} {'З':<3} {'ПР':<3} {'Р':<4}\n"
+    text += "-" * 55 + "\n"
+    for team in sorted_teams:
+        name = get_display_name(team['name'])[:10]
+        win_rounds = team['goals_for']
+        lose_rounds = team['goals_against']
+        diff = win_rounds - lose_rounds
+        text += f"{name:<12} {team['played']:<3} {team['points']:<3} {win_rounds:<3} {team['draws']:<3} {lose_rounds:<3} {win_rounds:<3} {lose_rounds:<3} {diff:>+3}\n"
+    text += "```"
+    return text
+
 # ===== КОМАНДА /start =====
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -70,26 +72,30 @@ def start(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     btn_create = types.KeyboardButton("🏆 Создать турнир")
     btn_add = types.KeyboardButton("➕ Добавить участника")
+    btn_register = types.KeyboardButton("📋 Регистрация всех")
     btn_groups = types.KeyboardButton("📊 Группы")
     btn_result = types.KeyboardButton("📝 Записать результат")
+    btn_generate = types.KeyboardButton("🎲 Сгенерировать результаты")
     btn_standings = types.KeyboardButton("📈 Таблица")
-    btn_reset = types.KeyboardButton("🔄 Сбросить турнир")
     btn_playoff = types.KeyboardButton("🏆 Плей-офф")
-    markup.add(btn_create, btn_add, btn_groups, btn_result, btn_standings, btn_playoff, btn_reset)
+    btn_reset = types.KeyboardButton("🔄 Сбросить турнир")
+    markup.add(btn_create, btn_add, btn_register, btn_groups, btn_result, btn_generate, btn_standings, btn_playoff, btn_reset)
 
     bot.reply_to(
         message,
         "🏆 *ТУРНИРНЫЙ БОТ*\n\n"
         "📌 *Команды:*\n"
-        "`/create_tournament 24` — создать турнир на N участников\n"
+        "`/create_tournament 24` — создать турнир\n"
+        "`/register_players @user1 @user2 ...` — массовая регистрация\n"
         "`/add_player @user` — добавить участника\n"
-        "`/remove_player @user` — удалить участника\n"
         "`/start_groups` — запустить групповой этап\n"
-        "`/result @user1 @user2 3:1` — записать результат\n"
-        "`/groups` — показать все группы\n"
-        "`/group A` — показать конкретную группу\n"
-        "`/standings` — общая таблица\n"
+        "`/result @u1 @u2 3:1` — записать результат\n"
+        "`/generate_results` — сгенерировать случайные результаты\n"
+        "`/clear_results` — очистить все результаты\n"
+        "`/groups` — все группы\n"
+        "`/group A` — конкретная группа\n"
         "`/playoff` — плей-офф\n"
+        "`/save_tournament` — сохранить турнир\n"
         "`/reset_tournament` — сбросить турнир\n\n"
         "💡 *Поддерживаемые форматы:* 16, 24, 32, 48, 64",
         parse_mode="Markdown",
@@ -113,7 +119,6 @@ def create_tournament(message):
         bot.reply_to(message, "❌ Введите число")
         return
 
-    # Проверяем поддерживаемые форматы
     supported = [16, 24, 32, 48, 64]
     if total not in supported:
         bot.reply_to(
@@ -129,8 +134,6 @@ def create_tournament(message):
         return
 
     groups_count = total // 4
-
-    # Определяем, сколько 3-х мест нужно
     total_playoff = groups_count * 2
     powers = [8, 16, 32, 64]
     target = next(p for p in powers if p >= total_playoff)
@@ -144,9 +147,8 @@ def create_tournament(message):
         )
         return
 
-    # Создаём турнир
     data = {
-        "status": "waiting",  # waiting, groups, playoff, finished
+        "status": "waiting",
         "total_players": total,
         "groups_count": groups_count,
         "players": [],
@@ -156,9 +158,8 @@ def create_tournament(message):
         "current_round": None
     }
 
-    # Создаём пустые группы
     for i in range(groups_count):
-        letter = chr(65 + i)  # A, B, C, D, ...
+        letter = chr(65 + i)
         data["groups"][letter] = {
             "teams": [],
             "matches": [],
@@ -172,7 +173,49 @@ def create_tournament(message):
         f"📊 Участников: {total}\n"
         f"📋 Групп: {groups_count}\n"
         f"📌 Статус: ожидание участников\n\n"
-        f"➕ Добавьте участников: `/add_player @user`",
+        f"➕ Добавьте участников: `/register_players @user1 @user2 ...`",
+        parse_mode="Markdown"
+    )
+
+# ===== КОМАНДА /register_players =====
+@bot.message_handler(commands=['register_players'])
+def register_players(message):
+    if not is_admin(message):
+        return
+
+    data = load_tournament()
+    if not data:
+        bot.reply_to(message, "❌ Сначала создайте турнир: /create_tournament")
+        return
+
+    if data["status"] != "waiting":
+        bot.reply_to(message, "❌ Турнир уже начался! Нельзя добавлять участников.")
+        return
+
+    parts = message.text.split()
+    if len(parts) < 2:
+        bot.reply_to(message, "❌ Используйте: `/register_players @user1 @user2 @user3 ...`", parse_mode="Markdown")
+        return
+
+    new_players = []
+    for p in parts[1:]:
+        if p.startswith('@'):
+            username = p.lower()
+            if username not in data["players"] and len(data["players"]) < data["total_players"]:
+                data["players"].append(username)
+                new_players.append(username)
+
+    if not new_players:
+        bot.reply_to(message, "⚠️ Никто не добавлен. Возможно, все уже зарегистрированы или турнир заполнен.")
+        return
+
+    save_tournament(data)
+    remaining = data["total_players"] - len(data["players"])
+    bot.reply_to(
+        message,
+        f"✅ Добавлено {len(new_players)} участников!\n"
+        f"📊 Всего: {len(data['players'])}/{data['total_players']}\n"
+        f"📌 Осталось: {remaining}",
         parse_mode="Markdown"
     )
 
@@ -242,8 +285,6 @@ def start_groups(message):
         )
         return
 
-    # Разбиваем на группы (рандомно)
-    import random
     players = data["players"].copy()
     random.shuffle(players)
 
@@ -269,7 +310,6 @@ def start_groups(message):
     data["status"] = "groups"
     save_tournament(data)
 
-    # Выводим группы
     text = "🏆 *ГРУППОВОЙ ЭТАП ЗАПУЩЕН!*\n\n"
     for group_name, group_data in data["groups"].items():
         team_names = [get_display_name(t['name']) for t in group_data["teams"]]
@@ -311,7 +351,6 @@ def add_result(message):
         bot.reply_to(message, "❌ Формат счёта: 3:1")
         return
 
-    # Ищем группу с этими игроками
     found_group = None
     for group_name, group_data in data["groups"].items():
         team_names = [t['name'] for t in group_data["teams"]]
@@ -323,14 +362,12 @@ def add_result(message):
         bot.reply_to(message, "❌ Игроки не найдены в одной группе.")
         return
 
-    # Проверяем, не играли ли уже
     group = data["groups"][found_group]
     for match in group["matches"]:
         if (match['p1'] == p1 and match['p2'] == p2) or (match['p1'] == p2 and match['p2'] == p1):
             bot.reply_to(message, "⚠️ Этот матч уже сыгран!")
             return
 
-    # Обновляем статистику
     for team in group["teams"]:
         if team["name"] == p1:
             team["goals_for"] += score1
@@ -378,6 +415,103 @@ def add_result(message):
         f"📊 Группа {found_group}"
     )
 
+# ===== КОМАНДА /generate_results =====
+@bot.message_handler(commands=['generate_results'])
+def generate_results(message):
+    if not is_admin(message):
+        return
+
+    data = load_tournament()
+    if not data or data["status"] != "groups":
+        bot.reply_to(message, "❌ Сначала создайте турнир и запустите группы: /start_groups")
+        return
+
+    total_matches = 0
+    for group_name, group_data in data["groups"].items():
+        teams = [t['name'] for t in group_data["teams"]]
+        if len(teams) < 2:
+            continue
+
+        for i in range(len(teams)):
+            for j in range(i + 1, len(teams)):
+                p1 = teams[i]
+                p2 = teams[j]
+
+                already_played = False
+                for match in group_data["matches"]:
+                    if (match['p1'] == p1 and match['p2'] == p2) or (match['p1'] == p2 and match['p2'] == p1):
+                        already_played = True
+                        break
+                if already_played:
+                    continue
+
+                score1 = random.randint(0, 3)
+                score2 = random.randint(0, 2)
+
+                for team in group_data["teams"]:
+                    if team["name"] == p1:
+                        team["goals_for"] += score1
+                        team["goals_against"] += score2
+                        team["played"] += 1
+                        if score1 > score2:
+                            team["points"] += 3
+                            team["wins"] += 1
+                        elif score1 == score2:
+                            team["points"] += 1
+                            team["draws"] += 1
+                        else:
+                            team["losses"] += 1
+                    elif team["name"] == p2:
+                        team["goals_for"] += score2
+                        team["goals_against"] += score1
+                        team["played"] += 1
+                        if score2 > score1:
+                            team["points"] += 3
+                            team["wins"] += 1
+                        elif score2 == score1:
+                            team["points"] += 1
+                            team["draws"] += 1
+                        else:
+                            team["losses"] += 1
+
+                group_data["matches"].append({
+                    "p1": p1,
+                    "p2": p2,
+                    "score1": score1,
+                    "score2": score2
+                })
+                group_data["played"] += 1
+                total_matches += 1
+
+    save_tournament(data)
+    bot.reply_to(message, f"✅ Сгенерировано {total_matches} матчей! Используйте /groups, чтобы посмотреть таблицу.")
+
+# ===== КОМАНДА /clear_results =====
+@bot.message_handler(commands=['clear_results'])
+def clear_results(message):
+    if not is_admin(message):
+        return
+
+    data = load_tournament()
+    if not data or data["status"] != "groups":
+        bot.reply_to(message, "❌ Турнир не в статусе groups.")
+        return
+
+    for group_name, group_data in data["groups"].items():
+        for team in group_data["teams"]:
+            team["points"] = 0
+            team["wins"] = 0
+            team["draws"] = 0
+            team["losses"] = 0
+            team["goals_for"] = 0
+            team["goals_against"] = 0
+            team["played"] = 0
+        group_data["matches"] = []
+        group_data["played"] = 0
+
+    save_tournament(data)
+    bot.reply_to(message, "🗑️ Все результаты очищены!")
+
 # ===== КОМАНДА /groups =====
 @bot.message_handler(commands=['groups'])
 def show_groups(message):
@@ -391,18 +525,8 @@ def show_groups(message):
         return
 
     text = "🏆 *ГРУППОВОЙ ЭТАП*\n\n"
-
     for group_name, group_data in sorted(data["groups"].items()):
-        sorted_teams = sort_teams(group_data["teams"])
-        text += f"📋 *Группа {group_name}*\n"
-        text += "```\n"
-        text += f"{'Команда':<12} {'И':<3} {'О':<3} {'В':<3} {'Н':<3} {'П':<3} {'З':<3} {'П':<3} {'Р':<4}\n"
-        text += "-" * 50 + "\n"
-        for team in sorted_teams:
-            name = get_display_name(team['name'])[:10]
-            diff = team['goals_for'] - team['goals_against']
-            text += f"{name:<12} {team['played']:<3} {team['points']:<3} {team['wins']:<3} {team['draws']:<3} {team['losses']:<3} {team['goals_for']:<3} {team['goals_against']:<3} {diff:<4}\n"
-        text += "```\n\n"
+        text += show_group_table(group_data, group_name) + "\n\n"
 
     bot.reply_to(message, text, parse_mode="Markdown")
 
@@ -425,19 +549,8 @@ def show_group(message):
         return
 
     group_data = data["groups"][group_letter]
-    sorted_teams = sort_teams(group_data["teams"])
+    text = show_group_table(group_data, group_letter)
 
-    text = f"🏆 *Группа {group_letter}*\n\n"
-    text += "```\n"
-    text += f"{'Команда':<12} {'И':<3} {'О':<3} {'В':<3} {'Н':<3} {'П':<3} {'З':<3} {'П':<3} {'Р':<4}\n"
-    text += "-" * 50 + "\n"
-    for team in sorted_teams:
-        name = get_display_name(team['name'])[:10]
-        diff = team['goals_for'] - team['goals_against']
-        text += f"{name:<12} {team['played']:<3} {team['points']:<3} {team['wins']:<3} {team['draws']:<3} {team['losses']:<3} {team['goals_for']:<3} {team['goals_against']:<3} {diff:<4}\n"
-    text += "```"
-
-    # Показываем сыгранные матчи
     if group_data["matches"]:
         text += "\n📝 *Сыгранные матчи:*\n"
         for match in group_data["matches"]:
@@ -446,6 +559,41 @@ def show_group(message):
             text += f"{p1} {match['score1']} : {match['score2']} {p2}\n"
 
     bot.reply_to(message, text, parse_mode="Markdown")
+
+# ===== КОМАНДА /playoff (заглушка) =====
+@bot.message_handler(commands=['playoff'])
+def start_playoff(message):
+    if not is_admin(message):
+        return
+
+    data = load_tournament()
+    if not data or data["status"] != "groups":
+        bot.reply_to(message, "❌ Сначала завершите групповой этап.")
+        return
+
+    bot.reply_to(
+        message,
+        "🏆 *ПЛЕЙ-ОФФ*\n\n"
+        "⏳ Функция в разработке!\n"
+        "Скоро здесь появится сетка 1/8, 1/4, 1/2 и финал.",
+        parse_mode="Markdown"
+    )
+
+# ===== КОМАНДА /save_tournament =====
+@bot.message_handler(commands=['save_tournament'])
+def save_tournament_to_file(message):
+    if not is_admin(message):
+        return
+
+    data = load_tournament()
+    if not data:
+        bot.reply_to(message, "❌ Нет активного турнира.")
+        return
+
+    with open(SAVE_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    bot.reply_to(message, "✅ Турнир сохранён в файл `tournament_save.json`", parse_mode="Markdown")
 
 # ===== КОМАНДА /reset_tournament =====
 @bot.message_handler(commands=['reset_tournament'])
@@ -466,16 +614,20 @@ def handle_buttons(message):
         bot.reply_to(message, "📝 Напишите: `/create_tournament N`\nНапример: `/create_tournament 24`", parse_mode="Markdown")
     elif message.text == "➕ Добавить участника":
         bot.reply_to(message, "📝 Напишите: `/add_player @username`", parse_mode="Markdown")
+    elif message.text == "📋 Регистрация всех":
+        bot.reply_to(message, "📝 Напишите: `/register_players @user1 @user2 @user3 ...`", parse_mode="Markdown")
     elif message.text == "📊 Группы":
         show_groups(message)
     elif message.text == "📝 Записать результат":
         bot.reply_to(message, "📝 Напишите: `/result @user1 @user2 3:1`", parse_mode="Markdown")
+    elif message.text == "🎲 Сгенерировать результаты":
+        generate_results(message)
     elif message.text == "📈 Таблица":
         show_groups(message)
     elif message.text == "🔄 Сбросить турнир":
         reset_tournament(message)
     elif message.text == "🏆 Плей-офф":
-        bot.reply_to(message, "⏳ Функция в разработке!")
+        start_playoff(message)
 
 # ---------- ЗАПУСК ----------
 print("✅ Турнирный бот запущен!")
