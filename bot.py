@@ -34,7 +34,22 @@ def is_owner(user_id):
     return user_id == OWNER_ID
 
 def is_admin(user_id):
-    return user_id == OWNER_ID or user_id in load_admins()
+    return user_id in load_admins()
+
+def is_owner_or_admin(user_id):
+    return is_owner(user_id) or is_admin(user_id)
+
+def is_admin_restricted(user_id):
+    """Админы НЕ могут: сбросить турнир, управлять админами"""
+    return is_admin(user_id) and not is_owner(user_id)
+
+def has_full_access(user_id):
+    """Только владелец имеет полный доступ"""
+    return is_owner(user_id)
+
+def has_tournament_access(user_id):
+    """Админы и владелец могут управлять турниром"""
+    return is_owner_or_admin(user_id)
 
 # ===== РАБОТА С ДАННЫМИ =====
 def load_tournament():
@@ -86,20 +101,29 @@ def show_group_table(group_data, group_name=None):
 # ===== КОМАНДА /start =====
 @bot.message_handler(commands=['start'])
 def start(message):
-    if not is_admin(message.from_user.id):
-        bot.reply_to(message, "⛔ Доступ только у администратора.")
-        return
+    user_id = message.from_user.id
+    is_owner_or_admin_flag = has_tournament_access(user_id)
+    is_owner_flag = has_full_access(user_id)
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    btn_create = types.KeyboardButton("🏆 Создать турнир")
-    btn_add = types.KeyboardButton("➕ Добавить участника")
-    btn_register = types.KeyboardButton("📋 Регистрация всех")
-    btn_result = types.KeyboardButton("📝 Записать результат")
-    btn_standings = types.KeyboardButton("📈 Таблица")
-    btn_playoff = types.KeyboardButton("🏆 Плей-офф")
-    btn_reset = types.KeyboardButton("🔄 Сбросить турнир")
-    btn_admins = types.KeyboardButton("👥 Админы")
-    markup.add(btn_create, btn_add, btn_register, btn_result, btn_standings, btn_playoff, btn_reset, btn_admins)
+    
+    if is_owner_or_admin_flag:
+        btn_create = types.KeyboardButton("🏆 Создать турнир")
+        btn_add = types.KeyboardButton("➕ Добавить участника")
+        btn_register = types.KeyboardButton("📋 Регистрация всех")
+        btn_result = types.KeyboardButton("📝 Записать результат")
+        btn_standings = types.KeyboardButton("📈 Таблица")
+        btn_playoff = types.KeyboardButton("🏆 Плей-офф")
+        markup.add(btn_create, btn_add, btn_register, btn_result, btn_standings, btn_playoff)
+        
+        if is_owner_flag:
+            btn_reset = types.KeyboardButton("🔄 Сбросить турнир")
+            btn_admins = types.KeyboardButton("👥 Админы")
+            markup.add(btn_reset, btn_admins)
+    else:
+        btn_standings = types.KeyboardButton("📈 Таблица")
+        btn_playoff = types.KeyboardButton("🏆 Плей-офф")
+        markup.add(btn_standings, btn_playoff)
 
     bot.reply_to(
         message,
@@ -119,11 +143,7 @@ def start(message):
         "`/result_playoff @u1 @u2 3:1` — результат в плей-офф\n"
         "`/result_playoff_draw @u1 @u2 1:1 @winner` — ничья в плей-офф\n"
         "`/next_round` — следующий раунд\n"
-        "`/add_admin_id 123456789` — добавить админа (владелец)\n"
-        "`/remove_admin_id 123456789` — удалить админа (владелец)\n"
-        "`/admins_list` — список админов\n"
-        "`/save_tournament` — сохранить турнир\n"
-        "`/reset_tournament` — сбросить турнир\n\n"
+        "`/save_tournament` — сохранить турнир\n\n"
         "💡 *Поддерживаемые форматы:* 16, 24, 32, 48, 64",
         parse_mode="Markdown",
         reply_markup=markup
@@ -132,7 +152,9 @@ def start(message):
 # ===== КОМАНДА /create_tournament =====
 @bot.message_handler(commands=['create_tournament'])
 def create_tournament(message):
-    if not is_admin(message.from_user.id):
+    user_id = message.from_user.id
+    if not has_tournament_access(user_id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     existing = load_tournament()
@@ -144,7 +166,7 @@ def create_tournament(message):
                 f"📊 Участников: {len(existing['players'])}/{existing['total_players']}\n"
                 f"📌 Статус: {existing['status']}\n\n"
                 "Чтобы создать новый турнир, сначала сбросьте старый:\n"
-                "`/reset_tournament`",
+                "`/reset_tournament` (только владелец)",
                 parse_mode="Markdown"
             )
             return
@@ -154,7 +176,7 @@ def create_tournament(message):
                 "⚠️ *Турнир уже запущен!*\n\n"
                 f"📌 Статус: {existing['status']}\n"
                 "Нельзя создать новый турнир, пока текущий не завершён.\n\n"
-                "Чтобы сбросить: `/reset_tournament`",
+                "Чтобы сбросить: `/reset_tournament` (только владелец)",
                 parse_mode="Markdown"
             )
             return
@@ -263,22 +285,18 @@ def show_help(message):
         "`/result_playoff @u1 @u2 3:1` — результат в плей-офф\n"
         "`/result_playoff_draw @u1 @u2 1:1 @winner` — ничья в плей-офф\n"
         "`/next_round` — следующий раунд\n"
-        "`/add_admin_id 123456789` — добавить админа (владелец)\n"
-        "`/remove_admin_id 123456789` — удалить админа (владелец)\n"
-        "`/admins_list` — список админов\n"
-        "`/save_tournament` — сохранить турнир\n"
-        "`/reset_tournament` — сбросить турнир\n\n"
+        "`/save_tournament` — сохранить турнир\n\n"
         "💡 *Важно:*\n"
-        "• Все команды доступны только администратору\n"
-        "• Перед созданием нового турнира — сбросьте старый\n"
+        "• Команды управления доступны только администраторам\n"
+        "• Сброс турнира и управление админами — только владельцу\n"
         "• Результаты сохраняются автоматически"
     )
     bot.reply_to(message, help_text, parse_mode="Markdown")
 
-# ===== КОМАНДА /add_admin_id =====
+# ===== КОМАНДА /add_admin_id (только владелец) =====
 @bot.message_handler(commands=['add_admin_id'])
 def add_admin_by_id(message):
-    if not is_owner(message.from_user.id):
+    if not has_full_access(message.from_user.id):
         bot.reply_to(message, "⛔ Только владелец может добавлять админов.")
         return
 
@@ -289,12 +307,12 @@ def add_admin_by_id(message):
 
     try:
         user_id = int(parts[1])
+        if user_id == OWNER_ID:
+            bot.reply_to(message, "👑 Владелец уже имеет все права!")
+            return
         admins = load_admins()
         if user_id in admins:
             bot.reply_to(message, f"⚠️ Пользователь с ID {user_id} уже является админом.")
-            return
-        if user_id == OWNER_ID:
-            bot.reply_to(message, "👑 Владелец уже имеет все права!")
             return
         admins.append(user_id)
         save_admins(admins)
@@ -302,10 +320,10 @@ def add_admin_by_id(message):
     except ValueError:
         bot.reply_to(message, "❌ Введите корректный ID (только цифры)")
 
-# ===== КОМАНДА /remove_admin_id =====
+# ===== КОМАНДА /remove_admin_id (только владелец) =====
 @bot.message_handler(commands=['remove_admin_id'])
 def remove_admin_by_id(message):
-    if not is_owner(message.from_user.id):
+    if not has_full_access(message.from_user.id):
         bot.reply_to(message, "⛔ Только владелец может удалять админов.")
         return
 
@@ -329,8 +347,8 @@ def remove_admin_by_id(message):
 # ===== КОМАНДА /admins_list =====
 @bot.message_handler(commands=['admins_list'])
 def admins_list(message):
-    if not is_admin(message.from_user.id):
-        bot.reply_to(message, "⛔ Доступ только у админов.")
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     admins = load_admins()
@@ -353,7 +371,8 @@ def admins_list(message):
 # ===== КОМАНДА /register_players =====
 @bot.message_handler(commands=['register_players'])
 def register_players(message):
-    if not is_admin(message.from_user.id):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     data = load_tournament()
@@ -395,7 +414,8 @@ def register_players(message):
 # ===== КОМАНДА /add_player =====
 @bot.message_handler(commands=['add_player'])
 def add_player(message):
-    if not is_admin(message.from_user.id):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     data = load_tournament()
@@ -437,7 +457,8 @@ def add_player(message):
 # ===== КОМАНДА /start_groups =====
 @bot.message_handler(commands=['start_groups'])
 def start_groups(message):
-    if not is_admin(message.from_user.id):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     data = load_tournament()
@@ -494,7 +515,8 @@ def start_groups(message):
 # ===== КОМАНДА /result =====
 @bot.message_handler(commands=['result'])
 def add_result(message):
-    if not is_admin(message.from_user.id):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     data = load_tournament()
@@ -591,7 +613,8 @@ def add_result(message):
 # ===== КОМАНДА /generate_results =====
 @bot.message_handler(commands=['generate_results'])
 def generate_results(message):
-    if not is_admin(message.from_user.id):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     data = load_tournament()
@@ -662,7 +685,8 @@ def generate_results(message):
 # ===== КОМАНДА /clear_results =====
 @bot.message_handler(commands=['clear_results'])
 def clear_results(message):
-    if not is_admin(message.from_user.id):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     data = load_tournament()
@@ -685,7 +709,7 @@ def clear_results(message):
     save_tournament(data)
     bot.reply_to(message, "🗑️ Все результаты очищены!")
 
-# ===== КОМАНДА /groups =====
+# ===== КОМАНДА /groups (доступно всем) =====
 @bot.message_handler(commands=['groups'])
 def show_groups(message):
     data = load_tournament()
@@ -703,7 +727,7 @@ def show_groups(message):
 
     bot.reply_to(message, text, parse_mode="Markdown")
 
-# ===== КОМАНДА /group =====
+# ===== КОМАНДА /group (доступно всем) =====
 @bot.message_handler(commands=['group'])
 def show_group(message):
     parts = message.text.split()
@@ -865,7 +889,8 @@ def generate_playoff_pairs(qualified, groups_count):
 
 @bot.message_handler(commands=['playoff'])
 def start_playoff(message):
-    if not is_admin(message.from_user.id):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     data = load_tournament()
@@ -931,7 +956,8 @@ def show_playoff_grid(message, data):
 
 @bot.message_handler(commands=['result_playoff'])
 def result_playoff(message):
-    if not is_admin(message.from_user.id):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     data = load_tournament()
@@ -999,7 +1025,8 @@ def result_playoff(message):
 
 @bot.message_handler(commands=['result_playoff_draw'])
 def result_playoff_draw(message):
-    if not is_admin(message.from_user.id):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     data = load_tournament()
@@ -1069,7 +1096,8 @@ def result_playoff_draw(message):
 
 @bot.message_handler(commands=['generate_playoff'])
 def generate_playoff_results(message):
-    if not is_admin(message.from_user.id):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     data = load_tournament()
@@ -1077,42 +1105,133 @@ def generate_playoff_results(message):
         bot.reply_to(message, "❌ Плей-офф не запущен.")
         return
 
-    playoff = data["playoff"]
-    generated = 0
-
-    for pair in playoff["pairs"]:
-        if pair["winner"]:
-            continue
-
-        score1 = random.randint(0, 3)
-        score2 = random.randint(0, 2)
-
-        if score1 > score2:
-            pair["winner"] = pair["p1"]
-        elif score2 > score1:
-            pair["winner"] = pair["p2"]
+    # Генерируем все матчи, пока турнир не завершится
+    while True:
+        playoff = data["playoff"]
+        
+        # Проверяем, есть ли несыгранные матчи
+        unplayed = [p for p in playoff["pairs"] if not p["winner"]]
+        if unplayed:
+            # Генерируем текущий раунд
+            generated = 0
+            for pair in unplayed:
+                score1 = random.randint(0, 3)
+                score2 = random.randint(0, 2)
+                if score1 > score2:
+                    pair["winner"] = pair["p1"]
+                elif score2 > score1:
+                    pair["winner"] = pair["p2"]
+                else:
+                    pair["winner"] = random.choice([pair["p1"], pair["p2"]])
+                    pair["is_draw"] = True
+                pair["score1"] = score1
+                pair["score2"] = score2
+                playoff["winners"].append(pair["winner"])
+                generated += 1
+            save_tournament(data)
+            bot.reply_to(message, f"✅ Сгенерировано {generated} матчей!")
+            # Переходим к следующему раунду
+            next_round_auto(message, data)
+            data = load_tournament()
+            if not data or data["status"] != "playoff":
+                break
         else:
-            pair["winner"] = random.choice([pair["p1"], pair["p2"]])
-            pair["is_draw"] = True
+            # Все матчи сыграны, пробуем перейти к следующему раунду
+            if not next_round_auto(message, data):
+                # Если переход не удался — турнир завершён
+                break
+            data = load_tournament()
+            if not data or data["status"] != "playoff":
+                break
 
-        pair["score1"] = score1
-        pair["score2"] = score2
-        playoff["winners"].append(pair["winner"])
-        generated += 1
+    bot.reply_to(message, "✅ Все матчи плей-офф сгенерированы!")
 
+def next_round_auto(message, data):
+    """Автоматический переход к следующему раунду (без проверки прав)"""
+    playoff = data["playoff"]
+    
+    # Проверяем, все ли матчи сыграны
+    for pair in playoff["pairs"]:
+        if not pair["winner"]:
+            return False
+
+    winners = [p["winner"] for p in playoff["pairs"]]
+    losers = [p["p1"] if p["winner"] == p["p2"] else p["p2"] for p in playoff["pairs"]]
+    
+    round_names = ["1/16", "1/8", "1/4", "1/2", "Финал"]
+    current_idx = round_names.index(playoff["round"])
+    next_idx = current_idx + 1
+
+    # === МАТЧ ЗА 3-Е МЕСТО ===
+    if playoff["round"] == "1/2" and len(winners) == 2:
+        finalists = winners[:2]
+        third_place_players = losers[:2]
+        
+        data["playoff"]["third_place_match"] = {
+            "p1": third_place_players[0],
+            "p2": third_place_players[1],
+            "winner": None,
+            "score1": None,
+            "score2": None,
+            "is_draw": False
+        }
+        data["playoff"]["finalists"] = finalists
+        data["playoff"]["status"] = "third_place"
+        save_tournament(data)
+        return True
+
+    # === ФИНАЛ ===
+    if playoff["round"] == "1/2" and len(winners) == 2:
+        if "third_place_match" in data["playoff"]:
+            third_match = data["playoff"]["third_place_match"]
+            if not third_match["winner"]:
+                return False
+            
+            finalists = data["playoff"]["finalists"]
+            data["playoff"]["round"] = "Финал"
+            data["playoff"]["pairs"] = [{
+                "p1": finalists[0],
+                "p2": finalists[1],
+                "winner": None,
+                "score1": None,
+                "score2": None,
+                "is_draw": False
+            }]
+            data["playoff"]["winners"] = []
+            data["playoff"]["status"] = "final"
+            save_tournament(data)
+            return True
+
+    # === ОБЫЧНЫЙ ПЕРЕХОД ===
+    if next_idx >= len(round_names):
+        champion = winners[0] if winners else "неизвестен"
+        data["status"] = "finished"
+        save_tournament(data)
+        bot.reply_to(message, f"🏆 *ТУРНИР ЗАВЕРШЁН!*\n\n👑 *ЧЕМПИОН:* {get_display_name(champion)}!\n\nПоздравляем победителя! 🎉")
+        return False
+
+    new_pairs = []
+    for i in range(0, len(winners), 2):
+        if i + 1 < len(winners):
+            new_pairs.append({
+                "p1": winners[i],
+                "p2": winners[i + 1],
+                "winner": None,
+                "score1": None,
+                "score2": None,
+                "is_draw": False
+            })
+
+    playoff["round"] = round_names[next_idx]
+    playoff["pairs"] = new_pairs
+    playoff["winners"] = []
     save_tournament(data)
-
-    all_played = all(p["winner"] for p in playoff["pairs"])
-    reply = f"✅ Сгенерировано {generated} матчей!"
-
-    if all_played:
-        reply += "\n📌 Все матчи сыграны! Напишите `/next_round` для перехода."
-
-    bot.reply_to(message, reply)
+    return True
 
 @bot.message_handler(commands=['result_third_place'])
 def result_third_place(message):
-    if not is_admin(message.from_user.id):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     data = load_tournament()
@@ -1175,7 +1294,8 @@ def result_third_place(message):
 
 @bot.message_handler(commands=['result_third_place_draw'])
 def result_third_place_draw(message):
-    if not is_admin(message.from_user.id):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     data = load_tournament()
@@ -1232,7 +1352,8 @@ def result_third_place_draw(message):
 
 @bot.message_handler(commands=['next_round'])
 def next_round(message):
-    if not is_admin(message.from_user.id):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     data = load_tournament()
@@ -1240,124 +1361,26 @@ def next_round(message):
         bot.reply_to(message, "❌ Плей-офф не запущен.")
         return
 
+    # Проверяем, все ли матчи сыграны
     playoff = data["playoff"]
-    
     for pair in playoff["pairs"]:
         if not pair["winner"]:
             bot.reply_to(message, "⚠️ Не все матчи сыграны! Запишите результаты или используйте `/generate_playoff`.")
             return
 
-    winners = [p["winner"] for p in playoff["pairs"]]
-    losers = [p["p1"] if p["winner"] == p["p2"] else p["p2"] for p in playoff["pairs"]]
-    
-    round_names = ["1/16", "1/8", "1/4", "1/2", "Финал"]
-    current_idx = round_names.index(playoff["round"])
-    next_idx = current_idx + 1
-
-    # === МАТЧ ЗА 3-Е МЕСТО ===
-    if playoff["round"] == "1/2" and len(winners) == 2:
-        finalists = winners[:2]
-        third_place_players = losers[:2]
-        
-        data["playoff"]["third_place_match"] = {
-            "p1": third_place_players[0],
-            "p2": third_place_players[1],
-            "winner": None,
-            "score1": None,
-            "score2": None,
-            "is_draw": False
-        }
-        data["playoff"]["finalists"] = finalists
-        data["playoff"]["status"] = "third_place"
-        save_tournament(data)
-        
-        text = "🥉 *МАТЧ ЗА 3-Е МЕСТО*\n\n"
-        p1 = get_display_name(third_place_players[0])
-        p2 = get_display_name(third_place_players[1])
-        text += f"🔥 {p1} — {p2}\n"
-        text += "\n📝 Запишите результат:\n"
-        text += "`/result_third_place @user1 @user2 3:1`\n"
-        text += "Или ничью: `/result_third_place_draw @user1 @user2 1:1 @winner`"
-        bot.reply_to(message, text, parse_mode="Markdown")
-        return
-
-    # === ФИНАЛ ===
-    if playoff["round"] == "1/2" and len(winners) == 2:
-        if "third_place_match" in data["playoff"]:
-            third_match = data["playoff"]["third_place_match"]
-            if not third_match["winner"]:
-                bot.reply_to(message, "⚠️ Сначала сыграйте матч за 3-е место!")
-                return
-            
-            finalists = data["playoff"]["finalists"]
-            data["playoff"]["round"] = "Финал"
-            data["playoff"]["pairs"] = [{
-                "p1": finalists[0],
-                "p2": finalists[1],
-                "winner": None,
-                "score1": None,
-                "score2": None,
-                "is_draw": False
-            }]
-            data["playoff"]["winners"] = []
-            data["playoff"]["status"] = "final"
-            save_tournament(data)
-            
-            text = "🏆 *ФИНАЛ*\n\n"
-            p1 = get_display_name(finalists[0])
-            p2 = get_display_name(finalists[1])
-            text += f"🔥 {p1} — {p2}\n"
-            text += "\n📝 Запишите результат:\n"
-            text += "`/result_playoff @user1 @user2 3:1`\n"
-            text += "Или ничью: `/result_playoff_draw @user1 @user2 1:1 @winner`"
-            bot.reply_to(message, text, parse_mode="Markdown")
-            return
-
-    # === ОБЫЧНЫЙ ПЕРЕХОД ===
-    if next_idx >= len(round_names):
-        champion = winners[0] if winners else "неизвестен"
-        data["status"] = "finished"
-        save_tournament(data)
-        bot.reply_to(
-            message,
-            f"🏆 *ТУРНИР ЗАВЕРШЁН!*\n\n"
-            f"👑 *ЧЕМПИОН:* {get_display_name(champion)}!\n\n"
-            f"Поздравляем победителя! 🎉"
-        )
-        return
-
-    new_pairs = []
-    for i in range(0, len(winners), 2):
-        if i + 1 < len(winners):
-            new_pairs.append({
-                "p1": winners[i],
-                "p2": winners[i + 1],
-                "winner": None,
-                "score1": None,
-                "score2": None,
-                "is_draw": False
-            })
-
-    playoff["round"] = round_names[next_idx]
-    playoff["pairs"] = new_pairs
-    playoff["winners"] = []
-    save_tournament(data)
-
-    text = f"🏆 *ПЛЕЙ-ОФФ: {round_names[next_idx].upper()}*\n\n"
-    for i, pair in enumerate(new_pairs, 1):
-        p1 = get_display_name(pair["p1"])
-        p2 = get_display_name(pair["p2"])
-        text += f"🔥 {i}. {p1} — {p2}\n"
-    text += "\n📝 Записывайте результаты:\n"
-    text += "`/result_playoff @user1 @user2 3:1`\n"
-    text += "Или ничью: `/result_playoff_draw @user1 @user2 1:1 @winner`"
-
-    bot.reply_to(message, text, parse_mode="Markdown")
+    # Пытаемся перейти к следующему раунду
+    if next_round_auto(message, data):
+        data = load_tournament()
+        if data and data["status"] == "playoff":
+            show_playoff_grid(message, data)
+    else:
+        bot.reply_to(message, "ℹ️ Турнир уже завершён.")
 
 # ===== КОМАНДА /save_tournament =====
 @bot.message_handler(commands=['save_tournament'])
 def save_tournament_to_file(message):
-    if not is_admin(message.from_user.id):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
         return
 
     data = load_tournament()
@@ -1370,10 +1393,11 @@ def save_tournament_to_file(message):
 
     bot.reply_to(message, "✅ Турнир сохранён в файл `tournament_save.json`", parse_mode="Markdown")
 
-# ===== КОМАНДА /reset_tournament =====
+# ===== КОМАНДА /reset_tournament (только владелец) =====
 @bot.message_handler(commands=['reset_tournament'])
 def reset_tournament(message):
-    if not is_admin(message.from_user.id):
+    if not has_full_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Только владелец может сбросить турнир!")
         return
 
     if os.path.exists(TOURNAMENT_FILE):
@@ -1385,21 +1409,46 @@ def reset_tournament(message):
 # ===== ОБРАБОТЧИК КНОПОК =====
 @bot.message_handler(func=lambda message: True)
 def handle_buttons(message):
+    user_id = message.from_user.id
+    is_owner_or_admin_flag = has_tournament_access(user_id)
+    is_owner_flag = has_full_access(user_id)
+
     if message.text == "🏆 Создать турнир":
+        if not is_owner_or_admin_flag:
+            bot.reply_to(message, "⛔ Доступ только у администраторов.")
+            return
         bot.reply_to(message, "📝 Напишите: `/create_tournament N`\nНапример: `/create_tournament 24`", parse_mode="Markdown")
     elif message.text == "➕ Добавить участника":
+        if not is_owner_or_admin_flag:
+            bot.reply_to(message, "⛔ Доступ только у администраторов.")
+            return
         bot.reply_to(message, "📝 Напишите: `/add_player @username`", parse_mode="Markdown")
     elif message.text == "📋 Регистрация всех":
+        if not is_owner_or_admin_flag:
+            bot.reply_to(message, "⛔ Доступ только у администраторов.")
+            return
         bot.reply_to(message, "📝 Напишите: `/register_players @user1 @user2 @user3 ...`", parse_mode="Markdown")
     elif message.text == "📝 Записать результат":
+        if not is_owner_or_admin_flag:
+            bot.reply_to(message, "⛔ Доступ только у администраторов.")
+            return
         bot.reply_to(message, "📝 Напишите: `/result @user1 @user2 3:1`", parse_mode="Markdown")
     elif message.text == "📈 Таблица":
         show_groups(message)
     elif message.text == "🔄 Сбросить турнир":
+        if not is_owner_flag:
+            bot.reply_to(message, "⛔ Только владелец может сбросить турнир!")
+            return
         reset_tournament(message)
     elif message.text == "🏆 Плей-офф":
+        if not is_owner_or_admin_flag:
+            bot.reply_to(message, "⛔ Доступ только у администраторов.")
+            return
         start_playoff(message)
     elif message.text == "👥 Админы":
+        if not is_owner_flag:
+            bot.reply_to(message, "⛔ Только владелец может управлять админами!")
+            return
         admins_list(message)
 
 # ---------- ЗАПУСК ----------
