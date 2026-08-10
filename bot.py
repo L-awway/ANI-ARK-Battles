@@ -108,6 +108,32 @@ def create_tournament(message):
     if not is_admin(message):
         return
 
+    # Проверяем, есть ли уже турнир
+    existing = load_tournament()
+    if existing:
+        if existing["status"] == "waiting" and existing["players"]:
+            bot.reply_to(
+                message,
+                "⚠️ *Турнир уже создан и в нём есть участники!*\n\n"
+                f"📊 Участников: {len(existing['players'])}/{existing['total_players']}\n"
+                f"📌 Статус: {existing['status']}\n\n"
+                "Чтобы создать новый турнир, сначала сбросьте старый:\n"
+                "`/reset_tournament`",
+                parse_mode="Markdown"
+            )
+            return
+        elif existing["status"] != "waiting":
+            bot.reply_to(
+                message,
+                "⚠️ *Турнир уже запущен!*\n\n"
+                f"📌 Статус: {existing['status']}\n"
+                "Нельзя создать новый турнир, пока текущий не завершён.\n\n"
+                "Чтобы сбросить: `/reset_tournament`",
+                parse_mode="Markdown"
+            )
+            return
+
+    # Дальше идёт обычный код создания турнира...
     parts = message.text.split()
     if len(parts) < 2:
         bot.reply_to(message, "❌ Используйте: `/create_tournament N`\nНапример: `/create_tournament 24`", parse_mode="Markdown")
@@ -173,9 +199,69 @@ def create_tournament(message):
         f"📊 Участников: {total}\n"
         f"📋 Групп: {groups_count}\n"
         f"📌 Статус: ожидание участников\n\n"
-        f"➕ Добавьте участников: `/register_players @user1 @user2 ...`",
+        f"➕ Добавьте участников: `/register_players @user1 @user2 ...`\n"
+        f"📖 Инструкция: `/help`",
         parse_mode="Markdown"
     )
+
+# ===== КОМАНДА /help ====
+@bot.message_handler(commands=['help'])
+def show_help(message):
+    help_text = (
+        "📖 *ИНСТРУКЦИЯ ПО ТУРНИРНОМУ БОТУ*\n\n"
+        "🏆 *Формат турнира:*\n"
+        "• Групповой этап (каждый с каждым в группе)\n"
+        "• 3 тура в группе (для 4 участников)\n"
+        "• Далее плей-офф (1/8, 1/4, 1/2, финал)\n\n"
+        "📊 *Как читать таблицу:*\n"
+        "`И` — сыграно матчей\n"
+        "`О` — очки (3 — победа, 1 — ничья, 0 — поражение)\n"
+        "`В` — выигранные раунды (сумма за все матчи)\n"
+        "`Н` — ничьи по матчам\n"
+        "`П` — проигранные раунды (сумма)\n"
+        "`З` — раунды за игроком (выиграно)\n"
+        "`ПР` — раунды проигранные игроком (проиграно)\n"
+        "`Р` — разница (З − ПР)\n\n"
+        "📝 *Как записать результат:*\n"
+        "`/result @игрок1 @игрок2 3:1`\n\n"
+        "📋 *Команды:*\n"
+        "`/create_tournament N` — создать турнир (16, 24, 32, 48, 64)\n"
+        "`/register_players @u1 @u2 ...` — массовая регистрация\n"
+        "`/add_player @user` — добавить одного участника\n"
+        "`/start_groups` — запустить групповой этап\n"
+        "`/result @u1 @u2 3:1` — записать результат\n"
+        "`/generate_results` — сгенерировать случайные результаты\n"
+        "`/clear_results` — очистить все результаты\n"
+        "`/groups` — показать все группы\n"
+        "`/group A` — показать конкретную группу\n"
+        "`/playoff` — начать плей-офф\n"
+        "`/save_tournament` — сохранить турнир\n"
+        "`/reset_tournament` — сбросить турнир\n\n"
+        "💡 *Важно:*\n"
+        "• Все команды доступны только администратору\n"
+        "• Перед созданием нового турнира — сбросьте старый\n"
+        "• Результаты сохраняются автоматически"
+    )
+    bot.reply_to(message, help_text, parse_mode="Markdown")
+
+# ===== КОМАНДА /rules ====
+@bot.message_handler(commands=['rules'])
+def show_rules(message):
+    rules_text = (
+        "📋 *ПРАВИЛА ТУРНИРА*\n\n"
+        "1️⃣ Каждый играет с каждым в своей группе (3 тура).\n"
+        "2️⃣ За победу — 3 очка, ничья — 1, поражение — 0.\n"
+        "3️⃣ В плей-офф выходят:\n"
+        "   • 1-е и 2-е места из каждой группы\n"
+        "   • Лучшие команды с 3-х мест (если нужно)\n"
+        "4️⃣ В плей-оффе — один матч на вылет.\n"
+        "5️⃣ При равенстве очков — смотрим разницу раундов.\n\n"
+        "📊 *Колонки в таблице:*\n"
+        "`И` — игры, `О` — очки, `В` — выигранные раунды,\n"
+        "`Н` — ничьи, `П` — проигранные раунды,\n"
+        "`З` — забито, `ПР` — пропущено, `Р` — разница."
+    )
+    bot.reply_to(message, rules_text, parse_mode="Markdown")
 
 # ===== КОМАНДА /register_players =====
 @bot.message_handler(commands=['register_players'])
