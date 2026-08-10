@@ -658,12 +658,15 @@ def show_group(message):
 ROUND_NAMES = ["1/16", "1/8", "1/4", "1/2", "Финал"]
 
 def get_qualified_teams(data):
-    """Определяет, кто вышел из групп"""
+    """Определяет, кто вышел из групп (с учётом лучших 3-х мест)"""
     qualified = []
     third_placed = []
 
+    # Собираем все команды по местам
     for group_name, group_data in data["groups"].items():
         sorted_teams = sort_teams(group_data["teams"])
+        
+        # 1-е место
         if len(sorted_teams) >= 1:
             qualified.append({
                 "name": sorted_teams[0]["name"],
@@ -673,6 +676,7 @@ def get_qualified_teams(data):
                 "diff": sorted_teams[0]["goals_for"] - sorted_teams[0]["goals_against"],
                 "goals_for": sorted_teams[0]["goals_for"]
             })
+        # 2-е место
         if len(sorted_teams) >= 2:
             qualified.append({
                 "name": sorted_teams[1]["name"],
@@ -682,6 +686,7 @@ def get_qualified_teams(data):
                 "diff": sorted_teams[1]["goals_for"] - sorted_teams[1]["goals_against"],
                 "goals_for": sorted_teams[1]["goals_for"]
             })
+        # 3-е место (добавляем в отдельный список для сортировки)
         if len(sorted_teams) >= 3:
             third_placed.append({
                 "name": sorted_teams[2]["name"],
@@ -692,18 +697,21 @@ def get_qualified_teams(data):
                 "goals_for": sorted_teams[2]["goals_for"]
             })
 
+    # Сортируем 3-и места по: очки → разница → забитые голы
     third_placed.sort(key=lambda x: (x["points"], x["diff"], x["goals_for"]), reverse=True)
 
+    # Определяем, сколько 3-х мест нужно добрать до степени двойки
     total_qualified = len(qualified)
     powers = [8, 16, 32, 64]
     target = next((p for p in powers if p >= total_qualified), 16)
     third_needed = target - total_qualified
 
+    # Добавляем лучшие 3-и места
     for i in range(min(third_needed, len(third_placed))):
         qualified.append(third_placed[i])
 
     return qualified
-
+    
 def generate_playoff_pairs(qualified, groups_count):
     """Генерирует пары для плей-офф"""
     if len(qualified) < 2:
