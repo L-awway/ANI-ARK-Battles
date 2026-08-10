@@ -1055,18 +1055,85 @@ def next_round(message):
 
     playoff = data["playoff"]
     
+    # Проверяем, все ли матчи сыграны
     for pair in playoff["pairs"]:
         if not pair["winner"]:
             bot.reply_to(message, "⚠️ Не все матчи сыграны! Запишите результаты или используйте `/generate_playoff`.")
             return
 
     winners = [p["winner"] for p in playoff["pairs"]]
+    losers = [p["p1"] if p["winner"] == p["p2"] else p["p2"] for p in playoff["pairs"]]
     
-    round_names = ROUND_NAMES
+    round_names = ["1/16", "1/8", "1/4", "1/2", "Финал"]
     current_idx = round_names.index(playoff["round"])
     next_idx = current_idx + 1
 
+    # === МАТЧ ЗА 3-Е МЕСТО ===
+    if playoff["round"] == "1/2" and len(winners) == 2:
+        # Сохраняем финалистов и участников матча за 3-е место
+        finalists = winners[:2]
+        third_place_players = losers[:2]
+        
+        # Сначала матч за 3-е место
+        data["playoff"]["third_place_match"] = {
+            "p1": third_place_players[0],
+            "p2": third_place_players[1],
+            "winner": None,
+            "score1": None,
+            "score2": None,
+            "is_draw": False
+        }
+        data["playoff"]["finalists"] = finalists
+        data["playoff"]["status"] = "third_place"
+        save_tournament(data)
+        
+        text = "🥉 *МАТЧ ЗА 3-Е МЕСТО*\n\n"
+        p1 = get_display_name(third_place_players[0])
+        p2 = get_display_name(third_place_players[1])
+        text += f"🔥 {p1} — {p2}\n"
+        text += "\n📝 Запишите результат:\n"
+        text += "`/result_third_place @user1 @user2 3:1`\n"
+        text += "Или ничью: `/result_third_place_draw @user1 @user2 1:1 @winner`"
+        bot.reply_to(message, text, parse_mode="Markdown")
+        return
+
+    # === ФИНАЛ ===
+    if playoff["round"] == "1/2" and len(winners) == 2:
+        # Проверяем, сыгран ли матч за 3-е место
+        if "third_place_match" in data["playoff"]:
+            third_match = data["playoff"]["third_place_match"]
+            if not third_match["winner"]:
+                bot.reply_to(message, "⚠️ Сначала сыграйте матч за 3-е место!")
+                return
+            
+            # Переходим к финалу
+            finalists = data["playoff"]["finalists"]
+            data["playoff"]["round"] = "Финал"
+            data["playoff"]["pairs"] = [{
+                "p1": finalists[0],
+                "p2": finalists[1],
+                "winner": None,
+                "score1": None,
+                "score2": None,
+                "is_draw": False
+            }]
+            data["playoff"]["winners"] = []
+            data["playoff"]["status"] = "final"
+            save_tournament(data)
+            
+            text = "🏆 *ФИНАЛ*\n\n"
+            p1 = get_display_name(finalists[0])
+            p2 = get_display_name(finalists[1])
+            text += f"🔥 {p1} — {p2}\n"
+            text += "\n📝 Запишите результат:\n"
+            text += "`/result_playoff @user1 @user2 3:1`\n"
+            text += "Или ничью: `/result_playoff_draw @user1 @user2 1:1 @winner`"
+            bot.reply_to(message, text, parse_mode="Markdown")
+            return
+
+    # === ОБЫЧНЫЙ ПЕРЕХОД МЕЖДУ РАУНДАМИ (1/16 → 1/8 → 1/4 → 1/2) ===
     if next_idx >= len(round_names):
+        # Завершение турнира (если вдруг)
         champion = winners[0] if winners else "неизвестен"
         data["status"] = "finished"
         save_tournament(data)
@@ -1078,6 +1145,7 @@ def next_round(message):
         )
         return
 
+    # Формируем пары для следующего раунда
     new_pairs = []
     for i in range(0, len(winners), 2):
         if i + 1 < len(winners):
@@ -1099,8 +1167,10 @@ def next_round(message):
     for i, pair in enumerate(new_pairs, 1):
         p1 = get_display_name(pair["p1"])
         p2 = get_display_name(pair["p2"])
-        text += f"🔥 {i}. {p1} — {p2} | ⏳ Не сыгран\n"
-    text += "\n📝 Записывайте результаты:\n`/result_playoff @user1 @user2 3:1`\n`/result_playoff_draw @user1 @user2 1:1 @winner`"
+        text += f"🔥 {i}. {p1} — {p2}\n"
+    text += "\n📝 Записывайте результаты:\n"
+    text += "`/result_playoff @user1 @user2 3:1`\n"
+    text += "Или ничью: `/result_playoff_draw @user1 @user2 1:1 @winner`"
 
     bot.reply_to(message, text, parse_mode="Markdown")
 
