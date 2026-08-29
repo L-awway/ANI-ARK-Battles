@@ -558,24 +558,37 @@ def result(message):
         return
 
     found_group = None
+    found_p1 = None
+    found_p2 = None
+    
     for group_name, group_data in data["groups"].items():
-        team_names = [t['name'] for t in group_data["teams"]]
-        if p1 in team_names and p2 in team_names:
+        # Приводим все имена к нижнему регистру для поиска
+        team_names_lower = [t['name'].lower() for t in group_data["teams"]]
+        if p1 in team_names_lower and p2 in team_names_lower:
             found_group = group_name
+            # Находим оригинальные имена
+            for team in group_data["teams"]:
+                if team['name'].lower() == p1:
+                    found_p1 = team['name']
+                if team['name'].lower() == p2:
+                    found_p2 = team['name']
             break
 
     if not found_group:
-        bot.reply_to(message, "❌ Игроки не найдены в одной группе.")
+        bot.reply_to(message, "❌ Игроки не найдены в одной группе.\n\nПроверьте написание: имена должны быть как в таблице.\nПример: `/fresult @nacamaml @velikiyarb 2:2`", parse_mode="Markdown")
         return
 
     group = data["groups"][found_group]
+    
+    # Проверяем, не сыгран ли уже матч
     for match in group["matches"]:
-        if (match['p1'] == p1 and match['p2'] == p2) or (match['p1'] == p2 and match['p2'] == p1):
+        if (match['p1'].lower() == p1 and match['p2'].lower() == p2) or (match['p1'].lower() == p2 and match['p2'].lower() == p1):
             bot.reply_to(message, "⚠️ Этот матч уже сыгран!")
             return
 
+    # Обновляем статистику (используем оригинальные имена)
     for team in group["teams"]:
-        if team["name"] == p1:
+        if team["name"].lower() == p1:
             team["goals_for"] += score1
             team["goals_against"] += score2
             team["played"] += 1
@@ -587,7 +600,7 @@ def result(message):
                 team["draws"] += 1
             else:
                 team["losses"] += 1
-        elif team["name"] == p2:
+        elif team["name"].lower() == p2:
             team["goals_for"] += score2
             team["goals_against"] += score1
             team["played"] += 1
@@ -601,8 +614,8 @@ def result(message):
                 team["losses"] += 1
 
     group["matches"].append({
-        "p1": p1,
-        "p2": p2,
+        "p1": found_p1,
+        "p2": found_p2,
         "score1": score1,
         "score2": score2
     })
@@ -610,8 +623,8 @@ def result(message):
 
     save_tournament(data)
 
-    display_p1 = get_display_name(p1)
-    display_p2 = get_display_name(p2)
+    display_p1 = get_display_name(found_p1)
+    display_p2 = get_display_name(found_p2)
 
     bot.reply_to(
         message,
@@ -619,7 +632,7 @@ def result(message):
         f"{display_p1} {score1} : {score2} {display_p2}\n"
         f"📊 Группа {found_group}"
     )
-
+    
 @bot.message_handler(commands=['fedit_result'])
 def edit_result(message):
     if not has_tournament_access(message.from_user.id):
