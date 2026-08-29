@@ -928,6 +928,48 @@ def admins_list(message):
     
     bot.reply_to(message, text, parse_mode="Markdown")
 
+# ===== ПРОВЕРКА ГОТОВНОСТИ К ПЛЕЙ-ОФФ =====
+def check_groups_complete(data):
+    """Проверяет, все ли матчи в группах сыграны"""
+    incomplete = []
+    total_matches = 0
+    played_matches = 0
+    
+    for group_name, group_data in data["groups"].items():
+        teams = group_data["teams"]
+        n = len(teams)
+        expected = n * (n - 1) // 2  # каждый с каждым
+        played = group_data["played"]
+        
+        total_matches += expected
+        played_matches += played
+        
+        if played < expected:
+            # Находим, какие матчи не сыграны
+            played_pairs = set()
+            for match in group_data["matches"]:
+                p1 = match["p1"]
+                p2 = match["p2"]
+                # Нормализуем порядок
+                if p1 > p2:
+                    p1, p2 = p2, p1
+                played_pairs.add((p1, p2))
+            
+            missing = []
+            for i in range(n):
+                for j in range(i + 1, n):
+                    p1 = teams[i]["name"]
+                    p2 = teams[j]["name"]
+                    if p1 > p2:
+                        p1, p2 = p2, p1
+                    if (p1, p2) not in played_pairs:
+                        missing.append(f"{get_display_name(p1)} — {get_display_name(p2)}")
+            
+            if missing:
+                incomplete.append(f"Группа {group_name}: {', '.join(missing)}")
+    
+    return incomplete, total_matches, played_matches
+
 # ===== ПЛЕЙ-ОФФ =====
 
 ROUND_NAMES = ["1/16", "1/8", "1/4", "1/2", "Финал", "Матч за 3-е место"]
@@ -1075,6 +1117,19 @@ def start_playoff(message):
         bot.reply_to(message, "❌ Групповой этап ещё не завершён.")
         return
 
+    # Проверяем, все ли матчи сыграны
+    incomplete, total, played = check_groups_complete(data)
+    
+    if incomplete:
+        text = "⚠️ *НЕ ВСЕ МАТЧИ СЫГРАНЫ!*\n\n"
+        text += f"📊 Сыграно: {played}/{total} матчей\n\n"
+        text += "❌ *Не сыграны:*\n"
+        for item in incomplete:
+            text += f"• {item}\n"
+        text += "\n📝 Запишите все результаты командой `/fresult`"
+        bot.reply_to(message, text, parse_mode="Markdown")
+        return
+
     qualified = get_qualified_teams(data)
     if len(qualified) < 2:
         bot.reply_to(message, "❌ Недостаточно команд для плей-офф.")
@@ -1137,6 +1192,8 @@ def show_playoff_full(message, data):
     text += "`/fnext_round` — перейти к следующему раунду"
 
     bot.reply_to(message, text, parse_mode="Markdown")
+
+# ===== ОСТАЛЬНЫЕ КОМАНДЫ ПЛЕЙ-ОФФ =====
 
 @bot.message_handler(commands=['fresult_playoff'])
 def result_playoff(message):
@@ -1471,9 +1528,7 @@ def advance_playoff(data):
 def result_third_place(message):
     if not has_tournament_access(message.from_user.id):
         bot.reply_to(message, "⛔ Доступ только у администраторов.")
-        return
-
-    data = load_tournament()
+        return    data = load_tournament()
     if not data or data["status"] != "playoff":
         bot.reply_to(message, "❌ Плей-офф не запущен.")
         return
@@ -1528,7 +1583,8 @@ def result_third_place(message):
         "score1": score1,
         "score2": score2,
         "winner": third_match["winner"],
-        "is_draw": False    })
+        "is_draw": False
+    })
 
     save_tournament(data)
 
@@ -1658,7 +1714,7 @@ def next_round(message):
         if data and data["status"] == "playoff":
             show_playoff_full(message, data)
 
-# ===== ОБРАБОТЧИК КНОПОК (ИСПРАВЛЕН!) =====
+# ===== ОБРАБОТЧИК КНОПОК =====
 @bot.message_handler(func=lambda message: True)
 def handle_buttons(message):
     user_id = message.from_user.id
