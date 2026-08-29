@@ -22,36 +22,165 @@ ADMINS_FILE = "tournament_admins.json"
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # ============================================================
-# РАБОТА С АДМИНАМИ
+# РАБОТА С АДМИНАМИ (ПОЛНОСТЬЮ ПЕРЕПИСАНО)
 # ============================================================
 
+ADMINS_FILE = "tournament_admins.json"
+
 def load_admins():
-    admins = PERMANENT_ADMINS.copy()
+    """Загружает список админов из файла"""
     if os.path.exists(ADMINS_FILE):
-        with open(ADMINS_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            admins.extend(data.get("admins", []))
-    return list(set(admins))
+        try:
+            with open(ADMINS_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("admins", [])
+        except:
+            return []
+    return []
 
 def save_admins(admins):
-    dynamic = [a for a in admins if a not in PERMANENT_ADMINS]
+    """Сохраняет список админов в файл"""
     with open(ADMINS_FILE, "w", encoding="utf-8") as f:
-        json.dump({"admins": dynamic}, f, indent=2, ensure_ascii=False)
+        json.dump({"admins": admins}, f, indent=2, ensure_ascii=False)
 
 def is_owner(user_id):
+    """Проверяет, является ли пользователь владельцем"""
     return user_id == OWNER_ID
 
 def is_admin(user_id):
+    """Проверяет, является ли пользователь админом (включая постоянных)"""
+    if user_id == OWNER_ID:
+        return True
+    if user_id in PERMANENT_ADMINS:
+        return True
     return user_id in load_admins()
 
 def is_owner_or_admin(user_id):
+    """Проверяет, является ли пользователь владельцем или админом"""
     return is_owner(user_id) or is_admin(user_id)
 
 def has_full_access(user_id):
+    """Только владелец имеет полный доступ"""
     return is_owner(user_id)
 
 def has_tournament_access(user_id):
+    """Админы и владелец могут управлять турниром"""
     return is_owner_or_admin(user_id)
+
+# ============================================================
+# КОМАНДЫ УПРАВЛЕНИЯ АДМИНАМИ
+# ============================================================
+
+@bot.message_handler(commands=['fadd_admin_id'])
+def add_admin_by_id(message):
+    """Добавляет админа по ID (только владелец)"""
+    if not has_full_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Только владелец может добавлять админов.")
+        return
+
+    parts = message.text.split()
+    if len(parts) < 2:
+        bot.reply_to(message, "❌ Используйте: `/fadd_admin_id 123456789`", parse_mode="Markdown")
+        return
+
+    try:
+        user_id = int(parts[1])
+        if user_id == OWNER_ID:
+            bot.reply_to(message, "👑 Владелец уже имеет все права!")
+            return
+        
+        admins = load_admins()
+        if user_id in admins:
+            bot.reply_to(message, f"⚠️ Пользователь с ID {user_id} уже является админом.")
+            return
+        
+        admins.append(user_id)
+        save_admins(admins)
+        bot.reply_to(message, f"✅ Админ с ID `{user_id}` добавлен!", parse_mode="Markdown")
+    except ValueError:
+        bot.reply_to(message, "❌ Введите корректный ID (только цифры)")
+
+@bot.message_handler(commands=['fremove_admin_id'])
+def remove_admin_by_id(message):
+    """Удаляет админа по ID (только владелец)"""
+    if not has_full_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Только владелец может удалять админов.")
+        return
+
+    parts = message.text.split()
+    if len(parts) < 2:
+        bot.reply_to(message, "❌ Используйте: `/fremove_admin_id 123456789`", parse_mode="Markdown")
+        return
+
+    try:
+        user_id = int(parts[1])
+        if user_id == OWNER_ID:
+            bot.reply_to(message, "👑 Владельца нельзя удалить!")
+            return
+        
+        admins = load_admins()
+        if user_id not in admins:
+            bot.reply_to(message, f"⚠️ Пользователь с ID {user_id} не является админом.")
+            return
+        
+        admins.remove(user_id)
+        save_admins(admins)
+        bot.reply_to(message, f"✅ Админ с ID `{user_id}` удалён!", parse_mode="Markdown")
+    except ValueError:
+        bot.reply_to(message, "❌ Введите корректный ID (только цифры)")
+
+@bot.message_handler(commands=['fadmins_list'])
+def admins_list(message):
+    """Показывает список админов (только владелец)"""
+    if not has_full_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Только владелец может управлять админами!")
+        return
+
+    admins = load_admins()
+    text = "👥 *СПИСОК АДМИНОВ*\n\n"
+    
+    # Показываем владельца
+    try:
+        owner = bot.get_chat(OWNER_ID)
+        owner_name = owner.first_name or "Владелец"
+        if owner.last_name:
+            owner_name += f" {owner.last_name}"
+        text += f"👑 *Владелец:* {owner_name}\n\n"
+    except:
+        text += f"👑 *Владелец:* ID: `{OWNER_ID}`\n\n"
+    
+    # Показываем постоянных админов
+    if PERMANENT_ADMINS:
+        text += "🔒 *Постоянные админы:*\n"
+        for admin_id in PERMANENT_ADMINS:
+            try:
+                user = bot.get_chat(admin_id)
+                user_name = user.first_name or "Админ"
+                if user.last_name:
+                    user_name += f" {user.last_name}"
+                text += f"• {user_name}\n"
+            except:
+                text += f"• ID: `{admin_id}`\n"
+        text += "\n"
+    
+    # Показываем динамических админов
+    if not admins:
+        text += "📭 Список добавленных админов пуст.\n"
+        text += "ℹ️ Чтобы добавить админа: `/fadd_admin_id 123456789`"
+    else:
+        text += "➕ *Добавленные админы:*\n"
+        for i, admin_id in enumerate(admins, 1):
+            try:
+                user = bot.get_chat(admin_id)
+                user_name = user.first_name or "Админ"
+                if user.last_name:
+                    user_name += f" {user.last_name}"
+                text += f"{i}. {user_name}\n"
+            except:
+                text += f"{i}. ID: `{admin_id}`\n"
+    
+    bot.reply_to(message, text, parse_mode="Markdown")
+
 
 # ============================================================
 # РАБОТА С ТУРНИРОМ
@@ -1672,7 +1801,7 @@ def next_round(message):
             show_playoff_full(message, data)
 
 # ============================================================
-# ОБРАБОТЧИК КНОПОК
+# ОБРАБОТЧИК КНОПОК (ПЕРЕПИСАН)
 # ============================================================
 
 @bot.message_handler(func=lambda message: True)
@@ -1680,6 +1809,9 @@ def handle_buttons(message):
     user_id = message.from_user.id
     is_owner_or_admin_flag = has_tournament_access(user_id)
     is_owner_flag = has_full_access(user_id)
+
+    # Отладочное сообщение (можно убрать после проверки)
+    # bot.reply_to(message, f"🔍 Нажата кнопка: {message.text}")
 
     if message.text == "🏆 Создать турнир":
         if not is_owner_or_admin_flag:
@@ -1731,7 +1863,11 @@ def handle_buttons(message):
             bot.reply_to(message, "⛔ Только владелец может управлять админами!")
             return
         admins_list(message)
-
+    
+    else:
+        # Если кнопка не распознана
+        bot.reply_to(message, f"ℹ️ Неизвестная кнопка: {message.text}")
+        
 # ============================================================
 # ЗАПУСК
 # ============================================================
