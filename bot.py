@@ -261,7 +261,7 @@ def start(message):
         reply_markup=markup
     )
 
-# ===== ОСТАЛЬНЫЕ КОМАНДЫ (кратко, но все рабочие) =====
+# ===== ОСТАЛЬНЫЕ КОМАНДЫ =====
 
 @bot.message_handler(commands=['fcreate_tournament'])
 def create_tournament(message):
@@ -489,7 +489,6 @@ def edit_result(message):
     old_score1 = old_match["score1"]
     old_score2 = old_match["score2"]
 
-    # Отнимаем старые очки
     for team in group["teams"]:
         if team["name"] == p1:
             team["goals_for"] -= old_score1
@@ -516,7 +515,6 @@ def edit_result(message):
             else:
                 team["losses"] -= 1
 
-    # Добавляем новые очки
     for team in group["teams"]:
         if team["name"] == p1:
             team["goals_for"] += new_score1
@@ -634,8 +632,9 @@ def replace_player(message):
         f"✅ Замена выполнена!\n"
         f"{old_name} → {new_name}",
         parse_mode="Markdown"
-        )
-    # ===== ОБРАБОТЧИК КНОПОК =====
+    )
+
+# ===== ОБРАБОТЧИК КНОПОК =====
 @bot.message_handler(func=lambda message: True)
 def handle_buttons(message):
     user_id = message.from_user.id
