@@ -25,8 +25,6 @@ bot = telebot.TeleBot(BOT_TOKEN)
 # РАБОТА С АДМИНАМИ (ПОЛНОСТЬЮ ПЕРЕПИСАНО)
 # ============================================================
 
-ADMINS_FILE = "tournament_admins.json"
-
 def load_admins():
     """Загружает список админов из файла"""
     if os.path.exists(ADMINS_FILE):
@@ -268,93 +266,6 @@ def restore_tournament():
 
 if not os.path.exists(TOURNAMENT_FILE):
     restore_tournament()
-
-# ============================================================
-# БЛОК УПРАВЛЕНИЯ АДМИНАМИ
-# ============================================================
-
-@bot.message_handler(commands=['fadd_admin_id'])
-def add_admin_by_id(message):
-    if not has_full_access(message.from_user.id):
-        bot.reply_to(message, "⛔ Только владелец может добавлять админов.")
-        return
-
-    parts = message.text.split()
-    if len(parts) < 2:
-        bot.reply_to(message, "❌ Используйте: `/fadd_admin_id 123456789`", parse_mode="Markdown")
-        return
-
-    try:
-        user_id = int(parts[1])
-        if user_id == OWNER_ID:
-            bot.reply_to(message, "👑 Владелец уже имеет все права!")
-            return
-        admins = load_admins()
-        if user_id in admins:
-            bot.reply_to(message, f"⚠️ Пользователь с ID {user_id} уже является админом.")
-            return
-        admins.append(user_id)
-        save_admins(admins)
-        bot.reply_to(message, f"✅ Админ с ID `{user_id}` добавлен!", parse_mode="Markdown")
-    except ValueError:
-        bot.reply_to(message, "❌ Введите корректный ID (только цифры)")
-
-@bot.message_handler(commands=['fremove_admin_id'])
-def remove_admin_by_id(message):
-    if not has_full_access(message.from_user.id):
-        bot.reply_to(message, "⛔ Только владелец может удалять админов.")
-        return
-
-    parts = message.text.split()
-    if len(parts) < 2:
-        bot.reply_to(message, "❌ Используйте: `/fremove_admin_id 123456789`", parse_mode="Markdown")
-        return
-
-    try:
-        user_id = int(parts[1])
-        admins = load_admins()
-        if user_id not in admins:
-            bot.reply_to(message, f"⚠️ Пользователь с ID {user_id} не является админом.")
-            return
-        admins.remove(user_id)
-        save_admins(admins)
-        bot.reply_to(message, f"✅ Админ с ID `{user_id}` удалён!", parse_mode="Markdown")
-    except ValueError:
-        bot.reply_to(message, "❌ Введите корректный ID (только цифры)")
-
-@bot.message_handler(commands=['fadmins_list'])
-def admins_list(message):
-    if not has_full_access(message.from_user.id):
-        bot.reply_to(message, "⛔ Только владелец может управлять админами!")
-        return
-
-    admins = load_admins()
-    text = "👥 *СПИСОК АДМИНОВ*\n\n"
-    
-    try:
-        owner = bot.get_chat(OWNER_ID)
-        owner_name = owner.first_name or "Владелец"
-        if owner.last_name:
-            owner_name += f" {owner.last_name}"
-        text += f"👑 *Владелец:* {owner_name}\n\n"
-    except:
-        text += f"👑 *Владелец:* ID: `{OWNER_ID}`\n\n"
-    
-    if not admins:
-        text += "📭 Список админов пуст."
-    else:
-        text += "🛡️ *Администраторы:*\n"
-        for i, admin_id in enumerate(admins, 1):
-            try:
-                user = bot.get_chat(admin_id)
-                user_name = user.first_name or "Админ"
-                if user.last_name:
-                    user_name += f" {user.last_name}"
-                text += f"{i}. {user_name}\n"
-            except:
-                text += f"{i}. ID: `{admin_id}`\n"
-    
-    bot.reply_to(message, text, parse_mode="Markdown")
 
 # ============================================================
 # ОСНОВНОЕ МЕНЮ
