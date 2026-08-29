@@ -979,6 +979,7 @@ def get_qualified_teams(data):
 
     return qualified
 
+
 def generate_playoff_pairs(qualified, groups_count):
     if len(qualified) < 2:
         return [], ""
@@ -1527,8 +1528,7 @@ def result_third_place(message):
         "score1": score1,
         "score2": score2,
         "winner": third_match["winner"],
-        "is_draw": False
-    })
+        "is_draw": False    })
 
     save_tournament(data)
 
@@ -1658,7 +1658,7 @@ def next_round(message):
         if data and data["status"] == "playoff":
             show_playoff_full(message, data)
 
-# ===== ОБРАБОТЧИК КНОПОК =====
+# ===== ОБРАБОТЧИК КНОПОК (ИСПРАВЛЕН!) =====
 @bot.message_handler(func=lambda message: True)
 def handle_buttons(message):
     user_id = message.from_user.id
