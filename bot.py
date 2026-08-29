@@ -129,7 +129,7 @@ if not os.path.exists(TOURNAMENT_FILE):
     restore_tournament()
 
 # ============================================================
-# БЛОК УПРАВЛЕНИЯ АДМИНАМИ (РАБОТАЕТ!)
+# БЛОК УПРАВЛЕНИЯ АДМИНАМИ (ПОЛНОСТЬЮ РАБОЧИЙ)
 # ============================================================
 
 @bot.message_handler(commands=['fadd_admin_id'])
@@ -279,7 +279,7 @@ def start(message):
     )
 
 # ============================================================
-# ГРУППОВОЙ ЭТАП (КОРОТКО)
+# КОМАНДЫ ГРУППОВОГО ЭТАПА
 # ============================================================
 
 @bot.message_handler(commands=['fgroups'])
@@ -408,37 +408,6 @@ def reset_tournament(message):
         bot.reply_to(message, "ℹ️ Нет активного турнира для сброса.")
 
 # ============================================================
-# ПЛЕЙ-ОФФ (СОКРАЩЁННО)
-# ============================================================
-
-@bot.message_handler(commands=['fplayoff'])
-def start_playoff(message):
-    if not has_tournament_access(message.from_user.id):
-        bot.reply_to(message, "⛔ Доступ только у администраторов.")
-        return
-
-    data = load_tournament()
-    if not data:
-        bot.reply_to(message, "❌ Турнир не найден.")
-        return
-
-    if data["status"] == "playoff":
-        bot.reply_to(message, "⏳ Плей-офф уже запущен! Используйте `/fnext_round` для перехода.")
-        return
-
-    if data["status"] != "groups":
-        bot.reply_to(message, "❌ Групповой этап ещё не завершён.")
-        return
-
-    bot.reply_to(
-        message,
-        "🏆 *ПЛЕЙ-ОФФ*\n\n"
-        "⏳ Функция в разработке!\n"
-        "Скоро здесь появится сетка 1/16, 1/8, 1/4, 1/2, финал и матч за 3-е место.",
-        parse_mode="Markdown"
-    )
-
-# ============================================================
 # ОБРАБОТЧИК КНОПОК
 # ============================================================
 
@@ -491,7 +460,7 @@ def handle_buttons(message):
         if not is_owner_or_admin_flag:
             bot.reply_to(message, "⛔ Доступ только у администраторов.")
             return
-        start_playoff(message)
+        bot.reply_to(message, "⏳ Функция в разработке!")
     
     elif message.text == "👥 Админы":
         if not is_owner_flag:
