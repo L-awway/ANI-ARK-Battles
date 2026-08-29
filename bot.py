@@ -1714,6 +1714,41 @@ def next_round(message):
         if data and data["status"] == "playoff":
             show_playoff_full(message, data)
 
+# ===== КОМАНДА /fadmins_list =====
+@bot.message_handler(commands=['fadmins_list'])
+def admins_list(message):
+    if not has_full_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Только владелец может управлять админами!")
+        return
+
+    admins = load_admins()
+    text = "👥 *СПИСОК АДМИНОВ*\n\n"
+    
+    try:
+        owner = bot.get_chat(OWNER_ID)
+        owner_name = owner.first_name or "Владелец"
+        if owner.last_name:
+            owner_name += f" {owner.last_name}"
+        text += f"👑 *Владелец:* {owner_name}\n\n"
+    except:
+        text += f"👑 *Владелец:* ID: `{OWNER_ID}`\n\n"
+    
+    if not admins:
+        text += "📭 Список админов пуст."
+    else:
+        text += "🛡️ *Администраторы:*\n"
+        for i, admin_id in enumerate(admins, 1):
+            try:
+                user = bot.get_chat(admin_id)
+                user_name = user.first_name or "Админ"
+                if user.last_name:
+                    user_name += f" {user.last_name}"
+                text += f"{i}. {user_name}\n"
+            except:
+                text += f"{i}. ID: `{admin_id}`\n"
+    
+    bot.reply_to(message, text, parse_mode="Markdown")
+
 # ===== ОБРАБОТЧИК КНОПОК =====
 @bot.message_handler(func=lambda message: True)
 def handle_buttons(message):
