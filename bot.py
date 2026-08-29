@@ -357,6 +357,63 @@ def create_tournament(message):
         parse_mode="Markdown"
     )
 
+@bot.message_handler(commands=['fstart_groups'])
+def start_groups(message):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
+        return
+
+    data = load_tournament()
+    if not data:
+        bot.reply_to(message, "❌ Сначала создайте турнир.")
+        return
+
+    if data["status"] != "waiting":
+        bot.reply_to(message, "❌ Турнир уже запущен.")
+        return
+
+    if len(data["players"]) < data["total_players"]:
+        bot.reply_to(
+            message,
+            f"❌ Недостаточно участников!\n"
+            f"Добавлено: {len(data['players'])}\n"
+            f"Нужно: {data['total_players']}"
+        )
+        return
+
+    players = data["players"].copy()
+    random.shuffle(players)
+
+    group_size = data["total_players"] // data["groups_count"]
+
+    for i, group_letter in enumerate(sorted(data["groups"].keys())):
+        start = i * group_size
+        end = start + group_size
+        group_players = players[start:end]
+
+        for player in group_players:
+            data["groups"][group_letter]["teams"].append({
+                "name": player,
+                "points": 0,
+                "wins": 0,
+                "draws": 0,
+                "losses": 0,
+                "goals_for": 0,
+                "goals_against": 0,
+                "played": 0
+            })
+
+    data["status"] = "groups"
+    save_tournament(data)
+
+    text = "🏆 *ГРУППОВОЙ ЭТАП ЗАПУЩЕН!*\n\n"
+    for group_name, group_data in data["groups"].items():
+        team_names = [get_display_name(t['name']) for t in group_data["teams"]]
+        text += f"📋 *Группа {group_name}:* {', '.join(team_names)}\n"
+
+    text += "\n📝 Записывайте результаты: `/fresult @user1 @user2 3:1`"
+    bot.reply_to(message, text, parse_mode="Markdown")
+
 @bot.message_handler(commands=['fgroups'])
 def show_groups(message):
     data = load_tournament()
@@ -563,7 +620,187 @@ def edit_result(message):
         f"📊 Группа {found_group}"
     )
 
-# ===== КОМАНДА /freplace_player =====
+@bot.message_handler(commands=['fresult'])
+def result(message):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
+        return
+
+    data = load_tournament()
+    if not data or data["status"] != "groups":
+        bot.reply_to(message, "❌ Групповой этап не запущен.")
+        return
+
+    parts = message.text.split()
+    if len(parts) < 4:
+        bot.reply_to(
+            message,
+            "❌ Используйте: `/fresult @user1 @user2 3:1`\n"
+            "Например: `/fresult @ivan @petr 2:0`",
+            parse_mode="Markdown"
+        )
+        return
+
+    p1 = parts[1].lower()
+    p2 = parts[2].lower()
+
+    try:
+        score1, score2 = map(int, parts[3].split(':'))
+        if score1 < 0 or score2 < 0:
+            bot.reply_to(message, "❌ Счёт не может быть отрицательным")
+            return
+    except ValueError:
+        bot.reply_to(message, "❌ Формат счёта: 3:1")
+        return
+
+    found_group = None
+    for group_name, group_data in data["groups"].items():
+        team_names = [t['name'] for t in group_data["teams"]]
+        if p1 in team_names and p2 in team_names:
+            found_group = group_name
+            break
+
+    if not found_group:
+        bot.reply_to(message, "❌ Игроки не найдены в одной группе.")
+        return
+
+    group = data["groups"][found_group]
+    for match in group["matches"]:
+        if (match['p1'] == p1 and match['p2'] == p2) or (match['p1'] == p2 and match['p2'] == p1):
+            bot.reply_to(message, "⚠️ Этот матч уже сыгран!")
+            return
+
+    for team in group["teams"]:
+        if team["name"] == p1:
+            team["goals_for"] += score1
+            team["goals_against"] += score2
+            team["played"] += 1
+            if score1 > score2:
+                team["points"] += 3
+                team["wins"] += 1
+            elif score1 == score2:
+                team["points"] += 1
+                team["draws"] += 1
+            else:
+                team["losses"] += 1
+
+        elif team["name"] == p2:
+            team["goals_for"] += score2
+            team["goals_against"] += score1
+            team["played"] += 1
+            if score2 > score1:
+                team["points"] += 3
+                team["wins"] += 1
+            elif score2 == score1:
+                team["points"] += 1
+                team["draws"] += 1
+            else:
+                team["losses"] += 1
+
+    group["matches"].append({
+        "p1": p1,
+        "p2": p2,
+        "score1": score1,
+        "score2": score2
+    })
+    group["played"] += 1
+
+    save_tournament(data)
+
+    display_p1 = get_display_name(p1)
+    display_p2 = get_display_name(p2)
+
+    bot.reply_to(
+        message,
+        f"✅ Результат записан!\n"
+        f"{display_p1} {score1} : {score2} {display_p2}\n"
+        f"📊 Группа {found_group}"
+    )
+
+@bot.message_handler(commands=['fadd_player'])
+def add_player(message):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
+        return
+
+    data = load_tournament()
+    if not data:
+        bot.reply_to(message, "❌ Сначала создайте турнир: /fcreate_tournament")
+        return
+
+    if data["status"] != "waiting":
+        bot.reply_to(message, "❌ Турнир уже начался! Нельзя добавлять участников.")
+        return
+
+    parts = message.text.split()
+    if len(parts) < 2 or not parts[1].startswith('@'):
+        bot.reply_to(message, "❌ Используйте: `/fadd_player @username`", parse_mode="Markdown")
+        return
+
+    username = parts[1].lower()
+
+    if username in data["players"]:
+        bot.reply_to(message, f"⚠️ {username} уже добавлен.")
+        return
+
+    if len(data["players"]) >= data["total_players"]:
+        bot.reply_to(message, f"❌ Турнир заполнен! Максимум: {data['total_players']}")
+        return
+
+    data["players"].append(username)
+    save_tournament(data)
+
+    remaining = data["total_players"] - len(data["players"])
+    bot.reply_to(
+        message,
+        f"✅ Добавлен: {username}\n"
+        f"📊 Всего: {len(data['players'])}/{data['total_players']}\n"
+        f"📌 Осталось: {remaining}",
+        parse_mode="Markdown"
+    )
+
+@bot.message_handler(commands=['fregister_players'])
+def register_players(message):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
+        return
+
+    data = load_tournament()
+    if not data:
+        bot.reply_to(message, "❌ Сначала создайте турнир: /fcreate_tournament")
+        return
+
+    if data["status"] != "waiting":
+        bot.reply_to(message, "❌ Турнир уже начался! Нельзя добавлять участников.")
+        return
+
+    parts = message.text.split()
+    if len(parts) < 2:
+        bot.reply_to(message, "❌ Используйте: `/fregister_players @user1 @user2 @user3 ...`", parse_mode="Markdown")
+        return
+
+    new_players = []
+    for p in parts[1:]:
+        if p.startswith('@'):
+            username = p.lower()
+            if username not in data["players"] and len(data["players"]) < data["total_players"]:
+                data["players"].append(username)
+                new_players.append(username)
+
+    if not new_players:
+        bot.reply_to(message, "⚠️ Никто не добавлен. Возможно, все уже зарегистрированы или турнир заполнен.")
+        return
+
+    save_tournament(data)
+    remaining = data["total_players"] - len(data["players"])
+    bot.reply_to(
+        message,
+        f"✅ Добавлено {len(new_players)} участников!\n"
+        f"📊 Всего: {len(data['players'])}/{data['total_players']}\n"
+        f"📌 Осталось: {remaining}",
+        parse_mode="Markdown"
+    )
+
 @bot.message_handler(commands=['freplace_player'])
 def replace_player(message):
     if not has_tournament_access(message.from_user.id):
@@ -641,7 +878,22 @@ def replace_player(message):
         parse_mode="Markdown"
     )
 
-# ===== ФУНКЦИЯ ДЛЯ АДМИНОВ (ДЛЯ КНОПКИ) =====
+@bot.message_handler(commands=['fsave_tournament'])
+def save_tournament_to_file(message):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
+        return
+
+    data = load_tournament()
+    if not data:
+        bot.reply_to(message, "❌ Нет активного турнира.")
+        return
+
+    with open(SAVE_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    bot.reply_to(message, "✅ Турнир сохранён в файл `tournament_save.json`", parse_mode="Markdown")
+
 @bot.message_handler(commands=['fadmins_list'])
 def admins_list(message):
     if not has_full_access(message.from_user.id):
@@ -726,7 +978,6 @@ def get_qualified_teams(data):
         qualified.append(third_placed[i])
 
     return qualified
-
 
 def generate_playoff_pairs(qualified, groups_count):
     if len(qualified) < 2:
