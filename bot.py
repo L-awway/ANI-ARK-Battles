@@ -1528,7 +1528,10 @@ def advance_playoff(data):
 def result_third_place(message):
     if not has_tournament_access(message.from_user.id):
         bot.reply_to(message, "⛔ Доступ только у администраторов.")
-        return    data = load_tournament()
+        return    
+        
+    data = load_tournament()
+    
     if not data or data["status"] != "playoff":
         bot.reply_to(message, "❌ Плей-офф не запущен.")
         return
