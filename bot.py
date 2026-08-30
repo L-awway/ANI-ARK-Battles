@@ -22,7 +22,7 @@ ADMINS_FILE = "tournament_admins.json"
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # ============================================================
-# РАБОТА С АДМИНАМИ
+# РАБОТА С АДМИНАМИ (ИСПРАВЛЕНО)
 # ============================================================
 
 def load_admins():
@@ -40,22 +40,27 @@ def save_admins(admins):
         json.dump({"admins": admins}, f, indent=2, ensure_ascii=False)
 
 def is_owner(user_id):
+    """Проверяет, является ли пользователь владельцем (ТЫ)"""
     return user_id == OWNER_ID
 
 def is_admin(user_id):
-    if user_id == OWNER_ID:
+    """Проверяет, является ли пользователь админом"""
+    if is_owner(user_id):  # ← Владелец всегда админ!
         return True
     if user_id in PERMANENT_ADMINS:
         return True
     return user_id in load_admins()
 
 def is_owner_or_admin(user_id):
+    """Проверяет, является ли пользователь владельцем или админом"""
     return is_owner(user_id) or is_admin(user_id)
 
 def has_full_access(user_id):
+    """Только владелец имеет полный доступ"""
     return is_owner(user_id)
 
 def has_tournament_access(user_id):
+    """Админы и владелец могут управлять турниром"""
     return is_owner_or_admin(user_id)
 
 # ============================================================
