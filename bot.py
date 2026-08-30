@@ -8,7 +8,11 @@ from datetime import datetime
 # ===== НАСТРОЙКИ =====
 BOT_TOKEN = "8658074950:AAHwVaOMhAW61ZIWeF7OU4ngaahDwSw48Co"
 OWNER_ID = 7080227092
-PERMANENT_ADMINS = [7133785280, 6511034646, 1341766146]
+PERMANENT_ADMINS = [
+    {"id": 7133785280, "name": "YarikFolze"},
+    {"id": 6511034646, "name": "Reo-Mikage"},
+    {"id": 1341766146, "name": "Art007"}
+]
 
 TOURNAMENT_FILE = "tournament_data.json"
 SAVE_FILE = "tournament_save.json"
@@ -215,20 +219,46 @@ def admins_list(message):
 
     admins = load_admins()
     text = "👥 *СПИСОК АДМИНОВ*\n\n"
+    
+    # Владелец
     text += f"👑 *Владелец:* {get_user_name_by_id(OWNER_ID)}\n\n"
     
+    # Постоянные админы
     if PERMANENT_ADMINS:
         text += "🔒 *Постоянные админы:*\n"
         for admin_id in PERMANENT_ADMINS:
-            text += f"• {get_user_name_by_id(admin_id)}\n"
+            # Пробуем получить имя через API, если не получается — показываем ID
+            try:
+                user = bot.get_chat(admin_id)
+                name = user.first_name or "Пользователь"
+                if user.last_name:
+                    name += f" {user.last_name}"
+                # Если есть username — добавляем его в скобках
+                if user.username:
+                    name += f" (@{user.username})"
+                text += f"• {name}\n"
+            except:
+                # Если не удалось получить данные — просто ID
+                text += f"• ID: `{admin_id}`\n"
         text += "\n"
     
+    # Добавленные админы
     if not admins:
-        text += "📭 Добавленных админов нет."
+        text += "📭 Добавленных админов нет.\n"
+        text += "ℹ️ Чтобы добавить: `/fadd_admin_id 123456789`"
     else:
         text += "➕ *Добавленные админы:*\n"
         for i, admin_id in enumerate(admins, 1):
-            text += f"{i}. {get_user_name_by_id(admin_id)}\n"
+            try:
+                user = bot.get_chat(admin_id)
+                name = user.first_name or "Пользователь"
+                if user.last_name:
+                    name += f" {user.last_name}"
+                if user.username:
+                    name += f" (@{user.username})"
+                text += f"{i}. {name}\n"
+            except:
+                text += f"{i}. ID: `{admin_id}`\n"
     
     bot.reply_to(message, text, parse_mode="Markdown")
 
