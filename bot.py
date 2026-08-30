@@ -7,11 +7,7 @@ from datetime import datetime
 
 # ===== НАСТРОЙКИ =====
 BOT_TOKEN = "8658074950:AAHwVaOMhAW61ZIWeF7OU4ngaahDwSw48Co"
-
-# ТВОЙ ID (главный владелец)
 OWNER_ID = 7080227092
-
-# ===== ПОСТОЯННЫЕ АДМИНЫ =====
 PERMANENT_ADMINS = [7133785280, 6511034646, 1341766146]
 
 TOURNAMENT_FILE = "tournament_data.json"
@@ -22,7 +18,7 @@ ADMINS_FILE = "tournament_admins.json"
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # ============================================================
-# РАБОТА С АДМИНАМИ (ИСПРАВЛЕНО)
+# РАБОТА С АДМИНАМИ
 # ============================================================
 
 def load_admins():
@@ -40,27 +36,22 @@ def save_admins(admins):
         json.dump({"admins": admins}, f, indent=2, ensure_ascii=False)
 
 def is_owner(user_id):
-    """Проверяет, является ли пользователь владельцем (ТЫ)"""
     return user_id == OWNER_ID
 
 def is_admin(user_id):
-    """Проверяет, является ли пользователь админом"""
-    if is_owner(user_id):  # ← Владелец всегда админ!
+    if is_owner(user_id):
         return True
     if user_id in PERMANENT_ADMINS:
         return True
     return user_id in load_admins()
 
 def is_owner_or_admin(user_id):
-    """Проверяет, является ли пользователь владельцем или админом"""
     return is_owner(user_id) or is_admin(user_id)
 
 def has_full_access(user_id):
-    """Только владелец имеет полный доступ"""
     return is_owner(user_id)
 
 def has_tournament_access(user_id):
-    """Админы и владелец могут управлять турниром"""
     return is_owner_or_admin(user_id)
 
 # ============================================================
@@ -82,11 +73,9 @@ def save_tournament(data):
 # ============================================================
 
 def get_display_name(username):
-    """Возвращает имя пользователя без @"""
     return username.replace('@', '')
 
 def get_user_name_by_id(user_id):
-    """Возвращает имя пользователя по его ID"""
     try:
         user = bot.get_chat(user_id)
         name = user.first_name or "Пользователь"
@@ -143,93 +132,14 @@ def restore_tournament():
             "@dottoreji", "@panda20k", "@beensuch", "@krer21001"
         ],
         "groups": {
-            "A": {
-                "teams": [
-                    {"name": "@zero_hz", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@yary_270", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@reocopyed", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@limbibo", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}
-                ],
-                "matches": [],
-                "played": 0
-            },
-            "B": {
-                "teams": [
-                    {"name": "@noobtobias", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@femfoy", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@makar_revo", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@ereneger13", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}
-                ],
-                "matches": [],
-                "played": 0
-            },
-            "C": {
-                "teams": [
-                    {"name": "@erofffa", "points": 3, "wins": 1, "draws": 0, "losses": 0, "goals_for": 3, "goals_against": 2, "played": 1},
-                    {"name": "@sh4d0w_0x", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@ale7xey", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@jimperqt", "points": 0, "wins": 0, "draws": 0, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 1}
-                ],
-                "matches": [{"p1": "@erofffa", "p2": "@jimperqt", "score1": 3, "score2": 2}],
-                "played": 1
-            },
-            "D": {
-                "teams": [
-                    {"name": "@jade_leech", "points": 3, "wins": 1, "draws": 0, "losses": 0, "goals_for": 3, "goals_against": 2, "played": 1},
-                    {"name": "@egori_ii", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@vixzow", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@krist_yout", "points": 0, "wins": 0, "draws": 0, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 1}
-                ],
-                "matches": [{"p1": "@jade_leech", "p2": "@krist_yout", "score1": 3, "score2": 2}],
-                "played": 1
-            },
-            "E": {
-                "teams": [
-                    {"name": "@bad_gyutar", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@ronin2033", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@stepanik12", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@a_r_t_0_0_", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}
-                ],
-                "matches": [],
-                "played": 0
-            },
-            "F": {
-                "teams": [
-                    {"name": "@revolvrx", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@pasanbb", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@gyutarosol", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@red_means_", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}
-                ],
-                "matches": [],
-                "played": 0
-            },
-            "G": {
-                "teams": [
-                    {"name": "@nacamaml", "points": 7, "wins": 2, "draws": 1, "losses": 0, "goals_for": 6, "goals_against": 4, "played": 3},
-                    {"name": "@velikiyarb", "points": 5, "wins": 1, "draws": 2, "losses": 0, "goals_for": 7, "goals_against": 6, "played": 3},
-                    {"name": "@kapybaran7", "points": 3, "wins": 1, "draws": 0, "losses": 2, "goals_for": 6, "goals_against": 7, "played": 3},
-                    {"name": "@hamster_qw", "points": 1, "wins": 0, "draws": 1, "losses": 2, "goals_for": 5, "goals_against": 7, "played": 3}
-                ],
-                "matches": [
-                    {"p1": "@nacamaml", "p2": "@hamster_qw", "score1": 2, "score2": 1},
-                    {"p1": "@velikiyarb", "p2": "@hamster_qw", "score1": 2, "score2": 2},
-                    {"p1": "@nacamaml", "p2": "@velikiyarb", "score1": 2, "score2": 2},
-                    {"p1": "@nacamaml", "p2": "@kapybaran7", "score1": 2, "score2": 1},
-                    {"p1": "@velikiyarb", "p2": "@kapybaran7", "score1": 3, "score2": 2},
-                    {"p1": "@hamster_qw", "p2": "@kapybaran7", "score1": 2, "score2": 3}
-                ],
-                "played": 6
-            },
-            "H": {
-                "teams": [
-                    {"name": "@dottoreji", "points": 3, "wins": 1, "draws": 0, "losses": 0, "goals_for": 3, "goals_against": 2, "played": 1},
-                    {"name": "@panda20k", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@beensuch", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0},
-                    {"name": "@krer21001", "points": 0, "wins": 0, "draws": 0, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 1}
-                ],
-                "matches": [{"p1": "@dottoreji", "p2": "@krer21001", "score1": 3, "score2": 2}],
-                "played": 1
-            }
+            "A": {"teams": [{"name": "@zero_hz", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@yary_270", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@reocopyed", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@limbibo", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}], "matches": [], "played": 0},
+            "B": {"teams": [{"name": "@noobtobias", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@femfoy", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@makar_revo", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@ereneger13", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}], "matches": [], "played": 0},
+            "C": {"teams": [{"name": "@erofffa", "points": 3, "wins": 1, "draws": 0, "losses": 0, "goals_for": 3, "goals_against": 2, "played": 1}, {"name": "@sh4d0w_0x", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@ale7xey", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@jimperqt", "points": 0, "wins": 0, "draws": 0, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 1}], "matches": [{"p1": "@erofffa", "p2": "@jimperqt", "score1": 3, "score2": 2}], "played": 1},
+            "D": {"teams": [{"name": "@jade_leech", "points": 3, "wins": 1, "draws": 0, "losses": 0, "goals_for": 3, "goals_against": 2, "played": 1}, {"name": "@egori_ii", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@vixzow", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@krist_yout", "points": 0, "wins": 0, "draws": 0, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 1}], "matches": [{"p1": "@jade_leech", "p2": "@krist_yout", "score1": 3, "score2": 2}], "played": 1},
+            "E": {"teams": [{"name": "@bad_gyutar", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@ronin2033", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@stepanik12", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@a_r_t_0_0_", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}], "matches": [], "played": 0},
+            "F": {"teams": [{"name": "@revolvrx", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@pasanbb", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@gyutarosol", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@red_means_", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}], "matches": [], "played": 0},
+            "G": {"teams": [{"name": "@nacamaml", "points": 7, "wins": 2, "draws": 1, "losses": 0, "goals_for": 6, "goals_against": 4, "played": 3}, {"name": "@velikiyarb", "points": 5, "wins": 1, "draws": 2, "losses": 0, "goals_for": 7, "goals_against": 6, "played": 3}, {"name": "@kapybaran7", "points": 3, "wins": 1, "draws": 0, "losses": 2, "goals_for": 6, "goals_against": 7, "played": 3}, {"name": "@hamster_qw", "points": 1, "wins": 0, "draws": 1, "losses": 2, "goals_for": 5, "goals_against": 7, "played": 3}], "matches": [{"p1": "@nacamaml", "p2": "@hamster_qw", "score1": 2, "score2": 1}, {"p1": "@velikiyarb", "p2": "@hamster_qw", "score1": 2, "score2": 2}, {"p1": "@nacamaml", "p2": "@velikiyarb", "score1": 2, "score2": 2}, {"p1": "@nacamaml", "p2": "@kapybaran7", "score1": 2, "score2": 1}, {"p1": "@velikiyarb", "p2": "@kapybaran7", "score1": 3, "score2": 2}, {"p1": "@hamster_qw", "p2": "@kapybaran7", "score1": 2, "score2": 3}], "played": 6},
+            "H": {"teams": [{"name": "@dottoreji", "points": 3, "wins": 1, "draws": 0, "losses": 0, "goals_for": 3, "goals_against": 2, "played": 1}, {"name": "@panda20k", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@beensuch", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@krer21001", "points": 0, "wins": 0, "draws": 0, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 1}], "matches": [{"p1": "@dottoreji", "p2": "@krer21001", "score1": 3, "score2": 2}], "played": 1}
         },
         "third_needed": 0,
         "playoff": None,
@@ -261,12 +171,10 @@ def add_admin_by_id(message):
         if user_id == OWNER_ID:
             bot.reply_to(message, "👑 Владелец уже имеет все права!")
             return
-        
         admins = load_admins()
         if user_id in admins:
             bot.reply_to(message, f"⚠️ Пользователь с ID {user_id} уже является админом.")
             return
-        
         admins.append(user_id)
         save_admins(admins)
         bot.reply_to(message, f"✅ Админ с ID `{user_id}` добавлен!", parse_mode="Markdown")
@@ -289,12 +197,10 @@ def remove_admin_by_id(message):
         if user_id == OWNER_ID:
             bot.reply_to(message, "👑 Владельца нельзя удалить!")
             return
-        
         admins = load_admins()
         if user_id not in admins:
             bot.reply_to(message, f"⚠️ Пользователь с ID {user_id} не является админом.")
             return
-        
         admins.remove(user_id)
         save_admins(admins)
         bot.reply_to(message, f"✅ Админ с ID `{user_id}` удалён!", parse_mode="Markdown")
@@ -309,21 +215,16 @@ def admins_list(message):
 
     admins = load_admins()
     text = "👥 *СПИСОК АДМИНОВ*\n\n"
-    
-    # Владелец
     text += f"👑 *Владелец:* {get_user_name_by_id(OWNER_ID)}\n\n"
     
-    # Постоянные админы
     if PERMANENT_ADMINS:
         text += "🔒 *Постоянные админы:*\n"
         for admin_id in PERMANENT_ADMINS:
             text += f"• {get_user_name_by_id(admin_id)}\n"
         text += "\n"
     
-    # Динамические админы
     if not admins:
-        text += "📭 Добавленных админов нет.\n"
-        text += "ℹ️ Чтобы добавить: `/fadd_admin_id 123456789`"
+        text += "📭 Добавленных админов нет."
     else:
         text += "➕ *Добавленные админы:*\n"
         for i, admin_id in enumerate(admins, 1):
@@ -339,11 +240,8 @@ def admins_list(message):
 def start(message):
     user_id = message.from_user.id
     is_owner_or_admin_flag = has_tournament_access(user_id)
-    is_owner_flag = is_owner(user_id)
+    is_owner_flag = has_full_access(user_id)
 
-
-    bot.reply_to(message, f"🔍 Твой ID: {user_id}\n👑 Владелец: {OWNER_ID}\n✅ Совпадает: {user_id == OWNER_ID}")
-    
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     
     if is_owner_or_admin_flag:
@@ -388,7 +286,7 @@ def start(message):
         "`/fedit_playoff @u1 @u2 3:1` — перезаписать в плей-офф\n"
         "`/freplace_playoff @старый @новый` — заменить в плей-офф\n"
         "`/fsave_tournament` — сохранить турнир\n"
-        "`/freset_tournament` — сбросить турнир (только владелец)\n"
+        "`/freset_tournament` — сбросить турнир (с подтверждением)\n"
         "`/fadd_admin_id` — добавить админа по ID (только владелец)\n"
         "`/fremove_admin_id` — удалить админа по ID (только владелец)\n"
         "`/fadmins_list` — список админов\n\n"
@@ -400,150 +298,6 @@ def start(message):
 # ============================================================
 # ГРУППОВОЙ ЭТАП
 # ============================================================
-
-@bot.message_handler(commands=['fcreate_tournament'])
-def create_tournament(message):
-    user_id = message.from_user.id
-    if not has_tournament_access(user_id):
-        bot.reply_to(message, "⛔ Доступ только у администраторов.")
-        return
-
-    existing = load_tournament()
-    if existing:
-        bot.reply_to(
-            message,
-            "⚠️ *Турнир уже существует!*\n\n"
-            "Чтобы создать новый, сначала сбросьте старый:\n"
-            "`/freset_tournament` (только владелец)",
-            parse_mode="Markdown"
-        )
-        return
-
-    parts = message.text.split()
-    if len(parts) < 2:
-        bot.reply_to(message, "❌ Используйте: `/fcreate_tournament N`\nНапример: `/fcreate_tournament 24`", parse_mode="Markdown")
-        return
-
-    try:
-        total = int(parts[1])
-    except ValueError:
-        bot.reply_to(message, "❌ Введите число")
-        return
-
-    supported = [16, 24, 32, 48, 64]
-    if total not in supported:
-        bot.reply_to(
-            message,
-            f"❌ Поддерживаются только: {', '.join(map(str, supported))}\n"
-            f"Ваше число: {total}",
-            parse_mode="Markdown"
-        )
-        return
-
-    if total % 4 != 0:
-        bot.reply_to(message, "❌ Число должно быть кратно 4")
-        return
-
-    groups_count = total // 4
-    total_playoff = groups_count * 2
-    powers = [8, 16, 32, 64]
-    target = next(p for p in powers if p >= total_playoff)
-    third_needed = target - total_playoff
-
-    if third_needed > groups_count:
-        bot.reply_to(
-            message,
-            f"⚠️ Для {total} участников нужно {third_needed} команд с 3-х мест, "
-            f"но доступно только {groups_count}. Попробуйте другое число."
-        )
-        return
-
-    data = {
-        "status": "waiting",
-        "total_players": total,
-        "groups_count": groups_count,
-        "players": [],
-        "groups": {},
-        "third_needed": third_needed,
-        "playoff": None,
-        "current_round": None
-    }
-
-    for i in range(groups_count):
-        letter = chr(65 + i)
-        data["groups"][letter] = {
-            "teams": [],
-            "matches": [],
-            "played": 0
-        }
-
-    save_tournament(data)
-    bot.reply_to(
-        message,
-        f"🏆 *Турнир создан!*\n"
-        f"📊 Участников: {total}\n"
-        f"📋 Групп: {groups_count}\n"
-        f"📌 Статус: ожидание участников\n\n"
-        f"➕ Добавьте участников: `/fregister_players @user1 @user2 ...`",
-        parse_mode="Markdown"
-    )
-
-@bot.message_handler(commands=['fstart_groups'])
-def start_groups(message):
-    if not has_tournament_access(message.from_user.id):
-        bot.reply_to(message, "⛔ Доступ только у администраторов.")
-        return
-
-    data = load_tournament()
-    if not data:
-        bot.reply_to(message, "❌ Сначала создайте турнир.")
-        return
-
-    if data["status"] != "waiting":
-        bot.reply_to(message, "❌ Турнир уже запущен.")
-        return
-
-    if len(data["players"]) < data["total_players"]:
-        bot.reply_to(
-            message,
-            f"❌ Недостаточно участников!\n"
-            f"Добавлено: {len(data['players'])}\n"
-            f"Нужно: {data['total_players']}"
-        )
-        return
-
-    players = data["players"].copy()
-    random.shuffle(players)
-
-    group_size = data["total_players"] // data["groups_count"]
-
-    for i, group_letter in enumerate(sorted(data["groups"].keys())):
-        start = i * group_size
-        end = start + group_size
-        group_players = players[start:end]
-
-        for player in group_players:
-            data["groups"][group_letter]["teams"].append({
-                "name": player,
-                "points": 0,
-                "wins": 0,
-                "draws": 0,
-                "losses": 0,
-                "goals_for": 0,
-                "goals_against": 0,
-                "played": 0
-            })
-
-    data["status"] = "groups"
-    save_tournament(data)
-
-    text = "🏆 *ГРУППОВОЙ ЭТАП ЗАПУЩЕН!*\n\n"
-    for group_name, group_data in data["groups"].items():
-        team_names = [get_display_name(t['name']) for t in group_data["teams"]]
-        text += f"📋 *Группа {group_name}:* {', '.join(team_names)}\n"
-
-    text += "\n📝 Записывайте результаты: `/fresult @user1 @user2 3:1`"
-    bot.reply_to(message, text, parse_mode="Markdown")
 
 @bot.message_handler(commands=['fgroups'])
 def show_groups(message):
@@ -604,12 +358,7 @@ def result(message):
 
     parts = message.text.split()
     if len(parts) < 4:
-        bot.reply_to(
-            message,
-            "❌ Используйте: `/fresult @user1 @user2 3:1`\n"
-            "Например: `/fresult @ivan @petr 2:0`",
-            parse_mode="Markdown"
-        )
+        bot.reply_to(message, "❌ Используйте: `/fresult @user1 @user2 3:1`", parse_mode="Markdown")
         return
 
     p1 = parts[1].lower().replace('@', '')
@@ -640,16 +389,10 @@ def result(message):
             break
 
     if not found_group:
-        bot.reply_to(
-            message,
-            "❌ Игроки не найдены в одной группе.\n\n"
-            "📌 Проверьте написание. Можно скопировать имена из таблицы: `/fgroups`",
-            parse_mode="Markdown"
-        )
+        bot.reply_to(message, "❌ Игроки не найдены в одной группе.", parse_mode="Markdown")
         return
 
     group = data["groups"][found_group]
-
     for match in group["matches"]:
         if (match['p1'].lower().replace('@', '') == p1 and match['p2'].lower().replace('@', '') == p2) or \
            (match['p1'].lower().replace('@', '') == p2 and match['p2'].lower().replace('@', '') == p1):
@@ -689,7 +432,6 @@ def result(message):
         "score2": score2
     })
     group["played"] += 1
-
     save_tournament(data)
 
     display_p1 = get_display_name(found_p1)
@@ -702,300 +444,11 @@ def result(message):
         f"📊 Группа {found_group}"
     )
 
-@bot.message_handler(commands=['fedit_result'])
-def edit_result(message):
-    if not has_tournament_access(message.from_user.id):
-        bot.reply_to(message, "⛔ Доступ только у администраторов.")
-        return
+# ============================================================
+# КОМАНДА СБРОСА С ПОДТВЕРЖДЕНИЕМ
+# ============================================================
 
-    data = load_tournament()
-    if not data or data["status"] != "groups":
-        bot.reply_to(message, "❌ Групповой этап не запущен.")
-        return
-
-    parts = message.text.split()
-    if len(parts) < 4:
-        bot.reply_to(message, "❌ Используйте: `/fedit_result @user1 @user2 3:1`", parse_mode="Markdown")
-        return
-
-    p1 = parts[1].lower().replace('@', '')
-    p2 = parts[2].lower().replace('@', '')
-
-    try:
-        new_score1, new_score2 = map(int, parts[3].split(':'))
-        if new_score1 < 0 or new_score2 < 0:
-            bot.reply_to(message, "❌ Счёт не может быть отрицательным")
-            return
-    except ValueError:
-        bot.reply_to(message, "❌ Формат счёта: 3:1")
-        return
-
-    found_group = None
-    old_match = None
-
-    for group_name, group_data in data["groups"].items():
-        team_names_lower = [t['name'].lower().replace('@', '') for t in group_data["teams"]]
-        if p1 in team_names_lower and p2 in team_names_lower:
-            for match in group_data["matches"]:
-                if (match['p1'].lower().replace('@', '') == p1 and match['p2'].lower().replace('@', '') == p2) or \
-                   (match['p1'].lower().replace('@', '') == p2 and match['p2'].lower().replace('@', '') == p1):
-                    old_match = match
-                    found_group = group_name
-                    break
-            if old_match:
-                break
-
-    if not found_group:
-        bot.reply_to(message, "❌ Матч не найден.")
-        return
-
-    group = data["groups"][found_group]
-    old_score1 = old_match["score1"]
-    old_score2 = old_match["score2"]
-
-    for team in group["teams"]:
-        if team['name'].lower().replace('@', '') == p1:
-            team["goals_for"] -= old_score1
-            team["goals_against"] -= old_score2
-            team["played"] -= 1
-            if old_score1 > old_score2:
-                team["points"] -= 3
-                team["wins"] -= 1
-            elif old_score1 == old_score2:
-                team["points"] -= 1
-                team["draws"] -= 1
-            else:
-                team["losses"] -= 1
-        elif team['name'].lower().replace('@', '') == p2:
-            team["goals_for"] -= old_score2
-            team["goals_against"] -= old_score1
-            team["played"] -= 1
-            if old_score2 > old_score1:
-                team["points"] -= 3
-                team["wins"] -= 1
-            elif old_score2 == old_score1:
-                team["points"] -= 1
-                team["draws"] -= 1
-            else:
-                team["losses"] -= 1
-
-    for team in group["teams"]:
-        if team['name'].lower().replace('@', '') == p1:
-            team["goals_for"] += new_score1
-            team["goals_against"] += new_score2
-            team["played"] += 1
-            if new_score1 > new_score2:
-                team["points"] += 3
-                team["wins"] += 1
-            elif new_score1 == new_score2:
-                team["points"] += 1
-                team["draws"] += 1
-            else:
-                team["losses"] += 1
-        elif team['name'].lower().replace('@', '') == p2:
-            team["goals_for"] += new_score2
-            team["goals_against"] += new_score1
-            team["played"] += 1
-            if new_score2 > new_score1:
-                team["points"] += 3
-                team["wins"] += 1
-            elif new_score2 == new_score1:
-                team["points"] += 1
-                team["draws"] += 1
-            else:
-                team["losses"] += 1
-
-    old_match["score1"] = new_score1
-    old_match["score2"] = new_score2
-
-    save_tournament(data)
-
-    display_p1 = get_display_name(p1)
-    display_p2 = get_display_name(p2)
-
-    bot.reply_to(
-        message,
-        f"✏️ Результат изменён!\n"
-        f"{display_p1} {old_score1}:{old_score2} {display_p2} → {new_score1}:{new_score2}\n"
-        f"📊 Группа {found_group}"
-    )
-
-@bot.message_handler(commands=['fadd_player'])
-def add_player(message):
-    if not has_tournament_access(message.from_user.id):
-        bot.reply_to(message, "⛔ Доступ только у администраторов.")
-        return
-
-    data = load_tournament()
-    if not data:
-        bot.reply_to(message, "❌ Сначала создайте турнир: /fcreate_tournament")
-        return
-
-    if data["status"] != "waiting":
-        bot.reply_to(message, "❌ Турнир уже начался! Нельзя добавлять участников.")
-        return
-
-    parts = message.text.split()
-    if len(parts) < 2 or not parts[1].startswith('@'):
-        bot.reply_to(message, "❌ Используйте: `/fadd_player @username`", parse_mode="Markdown")
-        return
-
-    username = parts[1].lower()
-
-    if username in data["players"]:
-        bot.reply_to(message, f"⚠️ {username} уже добавлен.")
-        return
-
-    if len(data["players"]) >= data["total_players"]:
-        bot.reply_to(message, f"❌ Турнир заполнен! Максимум: {data['total_players']}")
-        return
-
-    data["players"].append(username)
-    save_tournament(data)
-
-    remaining = data["total_players"] - len(data["players"])
-    bot.reply_to(
-        message,
-        f"✅ Добавлен: {username}\n"
-        f"📊 Всего: {len(data['players'])}/{data['total_players']}\n"
-        f"📌 Осталось: {remaining}",
-        parse_mode="Markdown"
-    )
-
-@bot.message_handler(commands=['fregister_players'])
-def register_players(message):
-    if not has_tournament_access(message.from_user.id):
-        bot.reply_to(message, "⛔ Доступ только у администраторов.")
-        return
-
-    data = load_tournament()
-    if not data:
-        bot.reply_to(message, "❌ Сначала создайте турнир: /fcreate_tournament")
-        return
-
-    if data["status"] != "waiting":
-        bot.reply_to(message, "❌ Турнир уже начался! Нельзя добавлять участников.")
-        return
-
-    parts = message.text.split()
-    if len(parts) < 2:
-        bot.reply_to(message, "❌ Используйте: `/fregister_players @user1 @user2 @user3 ...`", parse_mode="Markdown")
-        return
-
-    new_players = []
-    for p in parts[1:]:
-        if p.startswith('@'):
-            username = p.lower()
-            if username not in data["players"] and len(data["players"]) < data["total_players"]:
-                data["players"].append(username)
-                new_players.append(username)
-
-    if not new_players:
-        bot.reply_to(message, "⚠️ Никто не добавлен. Возможно, все уже зарегистрированы или турнир заполнен.")
-        return
-
-    save_tournament(data)
-    remaining = data["total_players"] - len(data["players"])
-    bot.reply_to(
-        message,
-        f"✅ Добавлено {len(new_players)} участников!\n"
-        f"📊 Всего: {len(data['players'])}/{data['total_players']}\n"
-        f"📌 Осталось: {remaining}",
-        parse_mode="Markdown"
-    )
-
-@bot.message_handler(commands=['freplace_player'])
-def replace_player(message):
-    if not has_tournament_access(message.from_user.id):
-        bot.reply_to(message, "⛔ Доступ только у администраторов.")
-        return
-
-    data = load_tournament()
-    if not data:
-        bot.reply_to(message, "❌ Турнир не найден.")
-        return
-
-    parts = message.text.split()
-    if len(parts) < 3:
-        bot.reply_to(message, "❌ Используйте: `/freplace_player @старый @новый`", parse_mode="Markdown")
-        return
-
-    old_name = parts[1].lower()
-    new_name = parts[2].lower()
-
-    if not old_name.startswith('@') or not new_name.startswith('@'):
-        bot.reply_to(message, "❌ Оба должны быть @username")
-        return
-
-    found = False
-    if old_name in data["players"]:
-        data["players"] = [new_name if x == old_name else x for x in data["players"]]
-        found = True
-
-    for group_data in data["groups"].values():
-        for team in group_data["teams"]:
-            if team["name"].lower() == old_name:
-                team["name"] = new_name
-                found = True
-        for match in group_data["matches"]:
-            if match["p1"].lower() == old_name:
-                match["p1"] = new_name
-                found = True
-            if match["p2"].lower() == old_name:
-                match["p2"] = new_name
-                found = True
-
-    if data.get("playoff"):
-        playoff = data["playoff"]
-        for pair in playoff.get("pairs", []):
-            if pair["p1"].lower() == old_name:
-                pair["p1"] = new_name
-                found = True
-            if pair["p2"].lower() == old_name:
-                pair["p2"] = new_name
-                found = True
-            if pair["winner"] and pair["winner"].lower() == old_name:
-                pair["winner"] = new_name
-                found = True
-        for match_list in playoff.get("history", {}).values():
-            for match in match_list:
-                if match["p1"].lower() == old_name:
-                    match["p1"] = new_name
-                    found = True
-                if match["p2"].lower() == old_name:
-                    match["p2"] = new_name
-                    found = True
-                if match["winner"] and match["winner"].lower() == old_name:
-                    match["winner"] = new_name
-                    found = True
-
-    if not found:
-        bot.reply_to(message, f"❌ Пользователь {old_name} не найден в турнире.")
-        return
-
-    save_tournament(data)
-    bot.reply_to(
-        message,
-        f"✅ Замена выполнена!\n"
-        f"{old_name} → {new_name}",
-        parse_mode="Markdown"
-    )
-
-@bot.message_handler(commands=['fsave_tournament'])
-def save_tournament_to_file(message):
-    if not has_tournament_access(message.from_user.id):
-        bot.reply_to(message, "⛔ Доступ только у администраторов.")
-        return
-
-    data = load_tournament()
-    if not data:
-        bot.reply_to(message, "❌ Нет активного турнира.")
-        return
-
-    with open(SAVE_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-
-    bot.reply_to(message, "✅ Турнир сохранён в файл `tournament_save.json`", parse_mode="Markdown")
+reset_waiting = {}
 
 @bot.message_handler(commands=['freset_tournament'])
 def reset_tournament(message):
@@ -1003,14 +456,38 @@ def reset_tournament(message):
         bot.reply_to(message, "⛔ Только владелец может сбросить турнир!")
         return
 
-    if os.path.exists(TOURNAMENT_FILE):
-        os.remove(TOURNAMENT_FILE)
+    if not os.path.exists(TOURNAMENT_FILE):
+        bot.reply_to(message, "ℹ️ Нет активного турнира для сброса.")
+        return
+
+    reset_waiting[message.chat.id] = True
+    bot.reply_to(
+        message,
+        "⚠️ *ВНИМАНИЕ!*\n\n"
+        "Вы собираетесь ПОЛНОСТЬЮ УДАЛИТЬ турнир!\n"
+        "Это действие нельзя отменить!\n\n"
+        "Для подтверждения напишите: `ДА`\n"
+        "Для отмены напишите что угодно другое.",
+        parse_mode="Markdown"
+    )
+
+@bot.message_handler(func=lambda message: message.chat.id in reset_waiting)
+def confirm_reset(message):
+    if not has_full_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Только владелец может сбросить турнир!")
+        return
+
+    reset_waiting.pop(message.chat.id, None)
+
+    if message.text.strip().upper() == "ДА":
+        if os.path.exists(TOURNAMENT_FILE):
+            os.remove(TOURNAMENT_FILE)
         bot.reply_to(message, "🗑️ Турнир полностью сброшен!")
     else:
-        bot.reply_to(message, "ℹ️ Нет активного турнира для сброса.")
+        bot.reply_to(message, "❌ Удаление отменено. Турнир сохранён.")
 
 # ============================================================
-# ПЛЕЙ-ОФФ (СОКРАЩЁННО, НО РАБОТАЕТ)
+# ПЛЕЙ-ОФФ (ПОЛНАЯ ВЕРСИЯ)
 # ============================================================
 
 ROUND_NAMES = ["1/16", "1/8", "1/4", "1/2", "Финал", "Матч за 3-е место"]
@@ -1793,9 +1270,8 @@ def next_round(message):
         data = load_tournament()
         if data and data["status"] == "playoff":
             show_playoff_full(message, data)
-
 # ============================================================
-# ОБРАБОТЧИК КНОПОК (БЕЗ ЛИШНИХ ОТВЕТОВ)
+# ОБРАБОТЧИК КНОПОК
 # ============================================================
 
 @bot.message_handler(func=lambda message: True)
@@ -1804,7 +1280,7 @@ def handle_buttons(message):
     is_owner_or_admin_flag = has_tournament_access(user_id)
     is_owner_flag = has_full_access(user_id)
 
-    # Игнорируем обычные текстовые сообщения (не кнопки)
+    # Игнорируем обычные сообщения (не кнопки)
     if message.text not in ["🏆 Создать турнир", "➕ Добавить участника", "📋 Регистрация всех", 
                            "📝 Записать результат", "✏️ Редактировать результат", "📈 Таблица", 
                            "🔄 Сбросить турнир", "🏆 Плей-офф", "👥 Админы"]:
@@ -1814,7 +1290,7 @@ def handle_buttons(message):
         if not is_owner_or_admin_flag:
             bot.reply_to(message, "⛔ Доступ только у администраторов.")
             return
-        bot.reply_to(message, "📝 Напишите: `/fcreate_tournament N`\nНапример: `/fcreate_tournament 24`", parse_mode="Markdown")
+        bot.reply_to(message, "📝 Напишите: `/fcreate_tournament N`", parse_mode="Markdown")
     
     elif message.text == "➕ Добавить участника":
         if not is_owner_or_admin_flag:
@@ -1826,7 +1302,7 @@ def handle_buttons(message):
         if not is_owner_or_admin_flag:
             bot.reply_to(message, "⛔ Доступ только у администраторов.")
             return
-        bot.reply_to(message, "📝 Напишите: `/fregister_players @user1 @user2 @user3 ...`", parse_mode="Markdown")
+        bot.reply_to(message, "📝 Напишите: `/fregister_players @user1 @user2 ...`", parse_mode="Markdown")
     
     elif message.text == "📝 Записать результат":
         if not is_owner_or_admin_flag:
@@ -1867,6 +1343,5 @@ def handle_buttons(message):
 
 print("✅ Турнирный бот (f-версия) запущен!")
 print(f"👑 Владелец: {get_user_name_by_id(OWNER_ID)}")
-print(f"🛡️ Постоянные админы: {len(PERMANENT_ADMINS)}")
 print("=" * 40)
 bot.infinity_polling()
