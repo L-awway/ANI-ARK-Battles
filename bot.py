@@ -1671,10 +1671,10 @@ def handle_buttons(message):
         reset_tournament(message)
     
     elif message.text == "🏆 Плей-офф":
-    if not is_owner_or_admin_flag:
-        bot.reply_to(message, "⛔ Доступ только у администраторов.")
-        return
-    start_playoff(message)  # ← Вызываем функцию, а не просто пишем "в разработке"
+        if not is_owner_or_admin_flag:   # ← ДОЛЖЕН БЫТЬ ОТСТУП (4 пробела)!
+            bot.reply_to(message, "⛔ Доступ только у администраторов.")
+            return
+        start_playoff(message)
     
     elif message.text == "👥 Админы":
         if not is_owner_flag:
