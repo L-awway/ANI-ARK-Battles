@@ -339,8 +339,11 @@ def admins_list(message):
 def start(message):
     user_id = message.from_user.id
     is_owner_or_admin_flag = has_tournament_access(user_id)
-    is_owner_flag = has_full_access(user_id)
+    is_owner_flag = is_owner(user_id)
 
+
+    bot.reply_to(message, f"🔍 Твой ID: {user_id}\n👑 Владелец: {OWNER_ID}\n✅ Совпадает: {user_id == OWNER_ID}")
+    
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     
     if is_owner_or_admin_flag:
