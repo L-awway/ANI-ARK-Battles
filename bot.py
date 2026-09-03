@@ -1609,6 +1609,29 @@ def handle_buttons(message):
             return
         admins_list(message)
 
+@bot.message_handler(commands=['freset_playoff'])
+def reset_playoff(message):
+    if not has_full_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Только владелец!")
+        return
+
+    data = load_tournament()
+    if not data:
+        bot.reply_to(message, "❌ Турнир не найден.")
+        return
+
+    # Принудительно создаём плей-офф
+    data["status"] = "groups"
+    data["playoff"] = None
+    save_tournament(data)
+
+    bot.reply_to(
+        message,
+        "✅ Турнир переведён в режим ГРУПП.\n"
+        "Теперь напишите `/fplayoff` для создания плей-офф заново.",
+        parse_mode="Markdown"
+    )
+
 # ============================================================
 # ЗАПУСК
 # ============================================================
