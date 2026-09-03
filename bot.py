@@ -552,6 +552,46 @@ def handle_buttons(message):
             return
         admins_list(message)
 
+@bot.message_handler(commands=['fforceplayoff'])
+def force_playoff(message):
+    if not is_owner(message.from_user.id):
+        bot.reply_to(message, "⛔ Только владелец!")
+        return
+
+    data = load_tournament()
+    if not data:
+        bot.reply_to(message, "❌ Турнир не найден.")
+        return
+
+    # Принудительно ставим статус groups и создаём плей-офф
+    data["status"] = "groups"
+    
+    # Твои точные пары
+    pairs = [
+        {"p1": "@ReoCopyed", "p2": "@Sh4d0w_0x", "winner": None, "score1": None, "score2": None, "label": "A"},
+        {"p1": "@erofffa", "p2": "@jade_leech001", "winner": None, "score1": None, "score2": None, "label": "B"},
+        {"p1": "@femfoy", "p2": "@Yary_270", "winner": None, "score1": None, "score2": None, "label": "C"},
+        {"p1": "@egori_ii", "p2": "@Jimperqt", "winner": None, "score1": None, "score2": None, "label": "D"},
+        {"p1": "@A_r_t_0_0_7", "p2": "@pasanbb", "winner": None, "score1": None, "score2": None, "label": "E"},
+        {"p1": "@NacamaML", "p2": "@panda20k", "winner": None, "score1": None, "score2": None, "label": "F"},
+        {"p1": "@revolvrx", "p2": "@ronin2033", "winner": None, "score1": None, "score2": None, "label": "G"},
+        {"p1": "@Dottoreji", "p2": "@velikiyarbuz", "winner": None, "score1": None, "score2": None, "label": "H"}
+    ]
+
+    data["playoff"] = {
+        "round": "1/8",
+        "pairs": pairs,
+        "winners": {},
+        "history": {}
+    }
+    save_tournament(data)
+
+    bot.reply_to(
+        message,
+        "✅ Плей-офф принудительно создан!\nНапишите `/fplayoff` для просмотра.",
+        parse_mode="Markdown"
+    )
+
 # ============================================================
 # ЗАПУСК
 # ============================================================
