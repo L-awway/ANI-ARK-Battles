@@ -109,7 +109,7 @@ def show_group_table(group_data, group_name=None):
     text += f"{'Команда':<12} {'Б':<3} {'О':<3} {'В':<3} {'Н':<3} {'П':<3} {'ВР':<3} {'ПРР':<3} {'Р':<4}\n"
     text += "-" * 55 + "\n"
     for team in sorted_teams:
-        name = get_display_name(team['name'])[:10]
+        name = team['name']  # вместо get_display_name(team['name'])[:10]
         win_rounds = team['goals_for']
         lose_rounds = team['goals_against']
         diff = win_rounds - lose_rounds
@@ -1078,10 +1078,11 @@ def show_playoff_full(message, data):
     text = f"🏆 *ПЛЕЙ-ОФФ: {playoff['round'].upper()}*\n\n"
 
     for i, pair in enumerate(playoff["pairs"], 1):
-        p1 = get_display_name(pair["p1"])
-        p2 = get_display_name(pair["p2"])
+        # Здесь мы НЕ убираем @, оставляем как есть
+        p1 = pair["p1"]  # было get_display_name(pair["p1"])
+        p2 = pair["p2"]  # было get_display_name(pair["p2"])
         if pair["winner"]:
-            winner = get_display_name(pair["winner"])
+            winner = pair["winner"]  # было get_display_name(pair["winner"])
             if pair.get("is_draw", False):
                 status = f"🎲 {pair['score1']}:{pair['score2']} → Победа: {winner} (по буллитам/кубам)"
             else:
@@ -1096,9 +1097,9 @@ def show_playoff_full(message, data):
             if matches:
                 text += f"\n📋 *{round_name}*\n"
                 for match in matches:
-                    p1 = get_display_name(match["p1"])
-                    p2 = get_display_name(match["p2"])
-                    winner = get_display_name(match["winner"])
+                    p1 = match["p1"]      # было get_display_name
+                    p2 = match["p2"]      # было get_display_name
+                    winner = match["winner"]  # было get_display_name
                     if match.get("is_draw", False):
                         text += f"  🎲 {p1} {match['score1']}:{match['score2']} {p2} → {winner} (по буллитам/кубам)\n"
                     else:
