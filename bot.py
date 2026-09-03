@@ -45,8 +45,9 @@ def is_owner(user_id):
 def is_admin(user_id):
     if is_owner(user_id):
         return True
-    if user_id in PERMANENT_ADMINS:
-        return True
+    for admin in PERMANENT_ADMINS:
+        if admin["id"] == user_id:
+            return True
     return user_id in load_admins()
 
 def is_owner_or_admin(user_id):
@@ -117,12 +118,12 @@ def show_group_table(group_data, group_name=None):
     return text
 
 # ============================================================
-# ВОССТАНОВЛЕНИЕ ТУРНИРА
+# ВОССТАНОВЛЕНИЕ ТУРНИРА (ОБНОВЛЁННЫЕ ДАННЫЕ)
 # ============================================================
 
 def restore_tournament():
     data = {
-        "status": "groups",
+        "status": "playoff",  # ← Сразу плей-офф!
         "total_players": 32,
         "groups_count": 8,
         "players": [
@@ -136,21 +137,107 @@ def restore_tournament():
             "@dottoreji", "@panda20k", "@beensuch", "@krer21001"
         ],
         "groups": {
-            "A": {"teams": [{"name": "@zero_hz", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@yary_270", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@reocopyed", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@limbibo", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}], "matches": [], "played": 0},
-            "B": {"teams": [{"name": "@noobtobias", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@femfoy", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@makar_revo", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@ereneger13", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}], "matches": [], "played": 0},
-            "C": {"teams": [{"name": "@erofffa", "points": 3, "wins": 1, "draws": 0, "losses": 0, "goals_for": 3, "goals_against": 2, "played": 1}, {"name": "@sh4d0w_0x", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@ale7xey", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@jimperqt", "points": 0, "wins": 0, "draws": 0, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 1}], "matches": [{"p1": "@erofffa", "p2": "@jimperqt", "score1": 3, "score2": 2}], "played": 1},
-            "D": {"teams": [{"name": "@jade_leech", "points": 3, "wins": 1, "draws": 0, "losses": 0, "goals_for": 3, "goals_against": 2, "played": 1}, {"name": "@egori_ii", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@vixzow", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@krist_yout", "points": 0, "wins": 0, "draws": 0, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 1}], "matches": [{"p1": "@jade_leech", "p2": "@krist_yout", "score1": 3, "score2": 2}], "played": 1},
-            "E": {"teams": [{"name": "@bad_gyutar", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@ronin2033", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@stepanik12", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@a_r_t_0_0_", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}], "matches": [], "played": 0},
-            "F": {"teams": [{"name": "@revolvrx", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@pasanbb", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@gyutarosol", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@red_means_", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}], "matches": [], "played": 0},
-            "G": {"teams": [{"name": "@nacamaml", "points": 7, "wins": 2, "draws": 1, "losses": 0, "goals_for": 6, "goals_against": 4, "played": 3}, {"name": "@velikiyarb", "points": 5, "wins": 1, "draws": 2, "losses": 0, "goals_for": 7, "goals_against": 6, "played": 3}, {"name": "@kapybaran7", "points": 3, "wins": 1, "draws": 0, "losses": 2, "goals_for": 6, "goals_against": 7, "played": 3}, {"name": "@hamster_qw", "points": 1, "wins": 0, "draws": 1, "losses": 2, "goals_for": 5, "goals_against": 7, "played": 3}], "matches": [{"p1": "@nacamaml", "p2": "@hamster_qw", "score1": 2, "score2": 1}, {"p1": "@velikiyarb", "p2": "@hamster_qw", "score1": 2, "score2": 2}, {"p1": "@nacamaml", "p2": "@velikiyarb", "score1": 2, "score2": 2}, {"p1": "@nacamaml", "p2": "@kapybaran7", "score1": 2, "score2": 1}, {"p1": "@velikiyarb", "p2": "@kapybaran7", "score1": 3, "score2": 2}, {"p1": "@hamster_qw", "p2": "@kapybaran7", "score1": 2, "score2": 3}], "played": 6},
-            "H": {"teams": [{"name": "@dottoreji", "points": 3, "wins": 1, "draws": 0, "losses": 0, "goals_for": 3, "goals_against": 2, "played": 1}, {"name": "@panda20k", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@beensuch", "points": 0, "wins": 0, "draws": 0, "losses": 0, "goals_for": 0, "goals_against": 0, "played": 0}, {"name": "@krer21001", "points": 0, "wins": 0, "draws": 0, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 1}], "matches": [{"p1": "@dottoreji", "p2": "@krer21001", "score1": 3, "score2": 2}], "played": 1}
+            "A": {
+                "teams": [
+                    {"name": "@reocopyed", "points": 7, "wins": 2, "draws": 1, "losses": 0, "goals_for": 5, "goals_against": 3, "played": 3},
+                    {"name": "@yary_270", "points": 6, "wins": 2, "draws": 0, "losses": 1, "goals_for": 4, "goals_against": 3, "played": 3},
+                    {"name": "@zero_hz", "points": 4, "wins": 1, "draws": 1, "losses": 1, "goals_for": 4, "goals_against": 4, "played": 3},
+                    {"name": "@limbibo", "points": 0, "wins": 0, "draws": 0, "losses": 3, "goals_for": 0, "goals_against": 3, "played": 3}
+                ],
+                "matches": [],
+                "played": 6
+            },
+            "B": {
+                "teams": [
+                    {"name": "@femfoy", "points": 9, "wins": 3, "draws": 0, "losses": 0, "goals_for": 3, "goals_against": 0, "played": 3},
+                    {"name": "@noobtobias", "points": 2, "wins": 0, "draws": 2, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 3},
+                    {"name": "@makar_revo", "points": 2, "wins": 0, "draws": 2, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 3},
+                    {"name": "@ereneger13", "points": 2, "wins": 0, "draws": 2, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 3}
+                ],
+                "matches": [],
+                "played": 6
+            },
+            "C": {
+                "teams": [
+                    {"name": "@erofffa", "points": 9, "wins": 3, "draws": 0, "losses": 0, "goals_for": 9, "goals_against": 3, "played": 3},
+                    {"name": "@jimperqt", "points": 4, "wins": 1, "draws": 1, "losses": 1, "goals_for": 7, "goals_against": 5, "played": 3},
+                    {"name": "@sh4d0w_0x", "points": 4, "wins": 1, "draws": 1, "losses": 1, "goals_for": 6, "goals_against": 5, "played": 3},
+                    {"name": "@ale7xey", "points": 0, "wins": 0, "draws": 0, "losses": 3, "goals_for": 0, "goals_against": 9, "played": 3}
+                ],
+                "matches": [],
+                "played": 6
+            },
+            "D": {
+                "teams": [
+                    {"name": "@egori_ii", "points": 7, "wins": 2, "draws": 1, "losses": 0, "goals_for": 8, "goals_against": 2, "played": 3},
+                    {"name": "@jade_leech", "points": 7, "wins": 2, "draws": 1, "losses": 0, "goals_for": 8, "goals_against": 4, "played": 3},
+                    {"name": "@vixzow", "points": 3, "wins": 1, "draws": 0, "losses": 2, "goals_for": 3, "goals_against": 6, "played": 3},
+                    {"name": "@krist_yout", "points": 0, "wins": 0, "draws": 0, "losses": 3, "goals_for": 2, "goals_against": 9, "played": 3}
+                ],
+                "matches": [],
+                "played": 6
+            },
+            "E": {
+                "teams": [
+                    {"name": "@a_r_t_0_0_", "points": 9, "wins": 3, "draws": 0, "losses": 0, "goals_for": 9, "goals_against": 2, "played": 3},
+                    {"name": "@ronin2033", "points": 6, "wins": 2, "draws": 0, "losses": 1, "goals_for": 8, "goals_against": 3, "played": 3},
+                    {"name": "@stepanik12", "points": 3, "wins": 1, "draws": 0, "losses": 2, "goals_for": 3, "goals_against": 6, "played": 3},
+                    {"name": "@bad_gyutar", "points": 0, "wins": 0, "draws": 0, "losses": 3, "goals_for": 0, "goals_against": 9, "played": 3}
+                ],
+                "matches": [],
+                "played": 6
+            },
+            "F": {
+                "teams": [
+                    {"name": "@revolvrx", "points": 9, "wins": 3, "draws": 0, "losses": 0, "goals_for": 8, "goals_against": 0, "played": 3},
+                    {"name": "@pasanbb", "points": 6, "wins": 2, "draws": 0, "losses": 1, "goals_for": 6, "goals_against": 2, "played": 3},
+                    {"name": "@red_means_", "points": 3, "wins": 1, "draws": 0, "losses": 2, "goals_for": 3, "goals_against": 6, "played": 3},
+                    {"name": "@gyutarosol", "points": 0, "wins": 0, "draws": 0, "losses": 3, "goals_for": 0, "goals_against": 9, "played": 3}
+                ],
+                "matches": [],
+                "played": 6
+            },
+            "G": {
+                "teams": [
+                    {"name": "@nacamaml", "points": 7, "wins": 2, "draws": 1, "losses": 0, "goals_for": 6, "goals_against": 4, "played": 3},
+                    {"name": "@velikiyarb", "points": 5, "wins": 1, "draws": 2, "losses": 0, "goals_for": 7, "goals_against": 6, "played": 3},
+                    {"name": "@kapybaran7", "points": 3, "wins": 1, "draws": 0, "losses": 2, "goals_for": 6, "goals_against": 7, "played": 3},
+                    {"name": "@hamster_qw", "points": 1, "wins": 0, "draws": 1, "losses": 2, "goals_for": 5, "goals_against": 7, "played": 3}
+                ],
+                "matches": [],
+                "played": 6
+            },
+            "H": {
+                "teams": [
+                    {"name": "@dottoreji", "points": 9, "wins": 3, "draws": 0, "losses": 0, "goals_for": 9, "goals_against": 4, "played": 3},
+                    {"name": "@panda20k", "points": 6, "wins": 2, "draws": 0, "losses": 1, "goals_for": 7, "goals_against": 4, "played": 3},
+                    {"name": "@krer21001", "points": 3, "wins": 1, "draws": 0, "losses": 2, "goals_for": 6, "goals_against": 5, "played": 3},
+                    {"name": "@beensuch", "points": 0, "wins": 0, "draws": 0, "losses": 3, "goals_for": 0, "goals_against": 9, "played": 3}
+                ],
+                "matches": [],
+                "played": 6
+            }
         },
         "third_needed": 0,
-        "playoff": None,
+        "playoff": {
+            "round": "1/8",
+            "pairs": [
+                {"p1": "@reocopyed", "p2": "@noobtobias", "winner": None, "score1": None, "score2": None, "is_draw": False},
+                {"p1": "@femfoy", "p2": "@jimperqt", "winner": None, "score1": None, "score2": None, "is_draw": False},
+                {"p1": "@erofffa", "p2": "@jade_leech001", "winner": None, "score1": None, "score2": None, "is_draw": False},
+                {"p1": "@egori_ii", "p2": "@ronin2033", "winner": None, "score1": None, "score2": None, "is_draw": False},
+                {"p1": "@A_r_t_0_0_7", "p2": "@pasanbb", "winner": None, "score1": None, "score2": None, "is_draw": False},
+                {"p1": "@revolvrx", "p2": "@velikiyarbuz", "winner": None, "score1": None, "score2": None, "is_draw": False},
+                {"p1": "@nacamaml", "p2": "@panda20k", "winner": None, "score1": None, "score2": None, "is_draw": False},
+                {"p1": "@dottoreji", "p2": "@Yary_270", "winner": None, "score1": None, "score2": None, "is_draw": False}
+            ],
+            "winners": [],
+            "history": {}
+        },
         "current_round": None
     }
     save_tournament(data)
-    print("✅ Турнир восстановлен с обновлёнными данными!")
+    print("✅ Турнир восстановлен с обновлёнными данными и плей-офф!")
 
 if not os.path.exists(TOURNAMENT_FILE):
     restore_tournament()
@@ -220,29 +307,14 @@ def admins_list(message):
     admins = load_admins()
     text = "👥 *СПИСОК АДМИНОВ*\n\n"
     
-    # Владелец
     text += f"👑 *Владелец:* {get_user_name_by_id(OWNER_ID)}\n\n"
     
-    # Постоянные админы
     if PERMANENT_ADMINS:
         text += "🔒 *Постоянные админы:*\n"
-        for admin_id in PERMANENT_ADMINS:
-            # Пробуем получить имя через API, если не получается — показываем ID
-            try:
-                user = bot.get_chat(admin_id)
-                name = user.first_name or "Пользователь"
-                if user.last_name:
-                    name += f" {user.last_name}"
-                # Если есть username — добавляем его в скобках
-                if user.username:
-                    name += f" (@{user.username})"
-                text += f"• {name}\n"
-            except:
-                # Если не удалось получить данные — просто ID
-                text += f"• ID: `{admin_id}`\n"
+        for admin in PERMANENT_ADMINS:
+            text += f"• {admin['name']}\n"
         text += "\n"
     
-    # Добавленные админы
     if not admins:
         text += "📭 Добавленных админов нет.\n"
         text += "ℹ️ Чтобы добавить: `/fadd_admin_id 123456789`"
@@ -254,8 +326,6 @@ def admins_list(message):
                 name = user.first_name or "Пользователь"
                 if user.last_name:
                     name += f" {user.last_name}"
-                if user.username:
-                    name += f" (@{user.username})"
                 text += f"{i}. {name}\n"
             except:
                 text += f"{i}. ID: `{admin_id}`\n"
@@ -313,7 +383,6 @@ def start(message):
         "`/fresult_third_place @u1 @u2 3:1` — матч за 3-е место\n"
         "`/fresult_third_place_draw @u1 @u2 1:1 @winner` — ничья за 3-е место\n"
         "`/freplace_player @старый @новый` — заменить участника\n"
-        "`/fedit_playoff @u1 @u2 3:1` — перезаписать в плей-офф\n"
         "`/freplace_playoff @старый @новый` — заменить в плей-офф\n"
         "`/fsave_tournament` — сохранить турнир\n"
         "`/freset_tournament` — сбросить турнир (с подтверждением)\n"
@@ -782,54 +851,6 @@ def confirm_reset(message):
     else:
         bot.reply_to(message, "❌ Удаление отменено. Турнир сохранён.")
 
-# ============================================================
-# ПЛЕЙ-ОФФ
-# ============================================================
-
-@bot.message_handler(commands=['fplayoff'])
-def start_playoff(message):
-    if not has_tournament_access(message.from_user.id):
-        bot.reply_to(message, "⛔ Доступ только у администраторов.")
-        return
-
-    data = load_tournament()
-    if not data:
-        bot.reply_to(message, "❌ Турнир не найден.")
-        return
-
-    # Если плей-офф уже запущен
-    if data["status"] == "playoff":
-        bot.reply_to(
-            message,
-            "🏆 *ПЛЕЙ-ОФФ УЖЕ ЗАПУЩЕН!*\n\n"
-            "Используйте `/fnext_round` для перехода к следующему раунду.\n"
-            "Или `/fgenerate_playoff` для автоматического заполнения.",
-            parse_mode="Markdown"
-        )
-        return
-
-    if data["status"] != "groups":
-        bot.reply_to(message, "❌ Групповой этап ещё не завершён.")
-        return
-
-    # Проверяем, все ли матчи сыграны
-    all_played = True
-    missing_matches = []
-    for group_name, group_data in data["groups"].items():
-        teams = len(group_data["teams"])
-        expected = teams * (teams - 1) // 2
-        if group_data["played"] < expected:
-            all_played = False
-            missing_matches.append(f"Группа {group_name}: {group_data['played']}/{expected}")
-
-    if not all_played:
-        text = "⚠️ *НЕ ВСЕ МАТЧИ СЫГРАНЫ!*\n\n"
-        text += "❌ Не доиграны:\n"
-        for item in missing_matches:
-            text += f"• {item}\n"
-        text += "\n📝 Заполните все результаты командой `/fresult`"
-        bot.reply_to(message, text, parse_mode="Markdown")
-        return
 # ============================================================
 # ПЛЕЙ-ОФФ (ПОЛНАЯ ВЕРСИЯ)
 # ============================================================
@@ -1616,6 +1637,67 @@ def next_round(message):
             show_playoff_full(message, data)
 
 # ============================================================
+# КОМАНДА /freplace_playoff
+# ============================================================
+
+@bot.message_handler(commands=['freplace_playoff'])
+def replace_playoff(message):
+    if not has_tournament_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Доступ только у администраторов.")
+        return
+
+    data = load_tournament()
+    if not data or data["status"] != "playoff":
+        bot.reply_to(message, "❌ Плей-офф не запущен.")
+        return
+
+    parts = message.text.split()
+    if len(parts) < 3:
+        bot.reply_to(message, "❌ Используйте: `/freplace_playoff @старый @новый`", parse_mode="Markdown")
+        return
+
+    old_name = parts[1].lower().replace('@', '')
+    new_name = parts[2].lower().replace('@', '')
+
+    found = False
+    playoff = data["playoff"]
+    
+    for pair in playoff.get("pairs", []):
+        if pair["p1"].lower().replace('@', '') == old_name:
+            pair["p1"] = "@" + new_name
+            found = True
+        if pair["p2"].lower().replace('@', '') == old_name:
+            pair["p2"] = "@" + new_name
+            found = True
+        if pair["winner"] and pair["winner"].lower().replace('@', '') == old_name:
+            pair["winner"] = "@" + new_name
+            found = True
+    
+    for match_list in playoff.get("history", {}).values():
+        for match in match_list:
+            if match["p1"].lower().replace('@', '') == old_name:
+                match["p1"] = "@" + new_name
+                found = True
+            if match["p2"].lower().replace('@', '') == old_name:
+                match["p2"] = "@" + new_name
+                found = True
+            if match["winner"].lower().replace('@', '') == old_name:
+                match["winner"] = "@" + new_name
+                found = True
+
+    if not found:
+        bot.reply_to(message, f"❌ Игрок {old_name} не найден в плей-офф.")
+        return
+
+    save_tournament(data)
+    bot.reply_to(
+        message,
+        f"✅ Замена в плей-офф выполнена!\n"
+        f"{old_name} → {new_name}",
+        parse_mode="Markdown"
+    )
+
+# ============================================================
 # ОБРАБОТЧИК КНОПОК
 # ============================================================
 
@@ -1624,12 +1706,6 @@ def handle_buttons(message):
     user_id = message.from_user.id
     is_owner_or_admin_flag = has_tournament_access(user_id)
     is_owner_flag = has_full_access(user_id)
-
-    # Игнорируем обычные сообщения
-    if message.text not in ["🏆 Создать турнир", "➕ Добавить участника", "📋 Регистрация всех", 
-                           "📝 Записать результат", "✏️ Редактировать результат", "📈 Таблица", 
-                           "🔄 Сбросить турнир", "🏆 Плей-офф", "👥 Админы"]:
-        return
 
     if message.text == "🏆 Создать турнир":
         if not is_owner_or_admin_flag:
@@ -1671,7 +1747,7 @@ def handle_buttons(message):
         reset_tournament(message)
     
     elif message.text == "🏆 Плей-офф":
-        if not is_owner_or_admin_flag:   # ← ДОЛЖЕН БЫТЬ ОТСТУП (4 пробела)!
+        if not is_owner_or_admin_flag:
             bot.reply_to(message, "⛔ Доступ только у администраторов.")
             return
         start_playoff(message)
