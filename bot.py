@@ -31,7 +31,7 @@ def sort_teams(teams):
     return sorted(teams, key=lambda x: x['points'], reverse=True)
 
 # ============================================================
-# ВОССТАНОВЛЕНИЕ ТУРНИРА
+# ВОССТАНОВЛЕНИЕ ТУРНИРА (ВСТРОЕННЫЕ ДАННЫЕ)
 # ============================================================
 
 def restore_tournament():
@@ -86,7 +86,7 @@ def show_groups(message):
     bot.reply_to(message, text, parse_mode="Markdown")
 
 # ============================================================
-# ПЛЕЙ-ОФФ (ТВОИ ТОЧНЫЕ ИМЕНА)
+# ПЛЕЙ-ОФФ
 # ============================================================
 
 @bot.message_handler(commands=['fplayoff'])
@@ -100,7 +100,7 @@ def start_playoff(message):
         bot.reply_to(message, "❌ Турнир не найден.")
         return
 
-    # Твои точные пары
+    # ТВОИ ТОЧНЫЕ ПАРЫ (с нижними подчёркиваниями)
     pairs = [
         {"p1": "@ReoCopyed", "p2": "@Sh4d0w_0x", "winner": None, "score1": None, "score2": None, "label": "A"},
         {"p1": "@erofffa", "p2": "@jade_leech001", "winner": None, "score1": None, "score2": None, "label": "B"},
@@ -230,7 +230,6 @@ def next_round(message):
     winners = playoff["winners"]
 
     if current_round == "1/8":
-        # 1/4 финала
         quarter = [
             {"p1": winners.get("A"), "p2": winners.get("B"), "winner": None, "score1": None, "score2": None, "label": "W"},
             {"p1": winners.get("E"), "p2": winners.get("F"), "winner": None, "score1": None, "score2": None, "label": "X"},
@@ -245,7 +244,6 @@ def next_round(message):
         return
 
     if current_round == "1/4":
-        # 1/2 финала
         qw = {}
         for pair in playoff["pairs"]:
             if pair.get("label") and pair["winner"]:
@@ -263,7 +261,6 @@ def next_round(message):
         return
 
     if current_round == "1/2":
-        # Финал
         winners_list = []
         for pair in playoff["pairs"]:
             if pair["winner"]:
