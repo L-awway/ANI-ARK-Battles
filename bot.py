@@ -14,7 +14,7 @@ PERMANENT_ADMINS = [
     {"id": 1341766146, "name": "Art007"}
 ]
 
-TOURNAMENT_FILE = "tournament_data.json"
+TOURNAMENT_FILE = os.path.join(os.path.dirname(__file__), "tournament_data.json")
 SAVE_FILE = "tournament_save.json"
 ADMINS_FILE = "tournament_admins.json"
 # =====================
