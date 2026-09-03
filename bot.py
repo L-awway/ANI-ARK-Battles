@@ -99,6 +99,46 @@ def sort_teams(teams):
     )
 
 # ============================================================
+# ВОССТАНОВЛЕНИЕ ТУРНИРА (ВСТРОЕННЫЕ ДАННЫЕ)
+# ============================================================
+
+def restore_tournament():
+    data = {
+        "status": "groups",
+        "total_players": 32,
+        "groups_count": 8,
+        "players": [
+            "@ZERO_HZ", "@Yary_270", "@ReoCopyed", "@Limbibo",
+            "@noobtobias", "@femfoy", "@MAKAR_REVOLUTION", "@ereneger13",
+            "@erofffa", "@Sh4d0w_0x", "@ale7xey", "@Jimperqt",
+            "@jade_leech001", "@egori_ii", "@Vixzow", "@Krist_youtube",
+            "@Bad_gyutar", "@ronin2033", "@stepanik123", "@A_r_t_0_0_7",
+            "@revolvrx", "@pasanbb", "@gyutarosolo", "@Red_Means_Love",
+            "@NacamaML", "@velikiyarbuz", "@Hamster_qw", "@kapybaran7",
+            "@Dottoreji", "@panda20k", "@beensuch", "@krer21001"
+        ],
+        "groups": {
+            "A": {"teams": [{"name": "@ReoCopyed", "points": 7, "wins": 2, "draws": 1, "losses": 0, "goals_for": 5, "goals_against": 3, "played": 3}, {"name": "@Yary_270", "points": 6, "wins": 2, "draws": 0, "losses": 1, "goals_for": 4, "goals_against": 3, "played": 3}, {"name": "@ZERO_HZ", "points": 4, "wins": 1, "draws": 1, "losses": 1, "goals_for": 4, "goals_against": 4, "played": 3}, {"name": "@Limbibo", "points": 0, "wins": 0, "draws": 0, "losses": 3, "goals_for": 0, "goals_against": 3, "played": 3}], "matches": [], "played": 6},
+            "B": {"teams": [{"name": "@femfoy", "points": 9, "wins": 3, "draws": 0, "losses": 0, "goals_for": 3, "goals_against": 0, "played": 3}, {"name": "@noobtobias", "points": 2, "wins": 0, "draws": 2, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 3}, {"name": "@MAKAR_REVOLUTION", "points": 2, "wins": 0, "draws": 2, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 3}, {"name": "@ereneger13", "points": 2, "wins": 0, "draws": 2, "losses": 1, "goals_for": 2, "goals_against": 3, "played": 3}], "matches": [], "played": 6},
+            "C": {"teams": [{"name": "@erofffa", "points": 9, "wins": 3, "draws": 0, "losses": 0, "goals_for": 9, "goals_against": 3, "played": 3}, {"name": "@Jimperqt", "points": 4, "wins": 1, "draws": 1, "losses": 1, "goals_for": 7, "goals_against": 5, "played": 3}, {"name": "@Sh4d0w_0x", "points": 4, "wins": 1, "draws": 1, "losses": 1, "goals_for": 6, "goals_against": 5, "played": 3}, {"name": "@ale7xey", "points": 0, "wins": 0, "draws": 0, "losses": 3, "goals_for": 0, "goals_against": 9, "played": 3}], "matches": [], "played": 6},
+            "D": {"teams": [{"name": "@egori_ii", "points": 7, "wins": 2, "draws": 1, "losses": 0, "goals_for": 8, "goals_against": 2, "played": 3}, {"name": "@jade_leech001", "points": 7, "wins": 2, "draws": 1, "losses": 0, "goals_for": 8, "goals_against": 4, "played": 3}, {"name": "@Vixzow", "points": 3, "wins": 1, "draws": 0, "losses": 2, "goals_for": 3, "goals_against": 6, "played": 3}, {"name": "@Krist_youtube", "points": 0, "wins": 0, "draws": 0, "losses": 3, "goals_for": 2, "goals_against": 9, "played": 3}], "matches": [], "played": 6},
+            "E": {"teams": [{"name": "@A_r_t_0_0_7", "points": 9, "wins": 3, "draws": 0, "losses": 0, "goals_for": 9, "goals_against": 2, "played": 3}, {"name": "@ronin2033", "points": 6, "wins": 2, "draws": 0, "losses": 1, "goals_for": 8, "goals_against": 3, "played": 3}, {"name": "@stepanik123", "points": 3, "wins": 1, "draws": 0, "losses": 2, "goals_for": 3, "goals_against": 6, "played": 3}, {"name": "@Bad_Gyutaro", "points": 0, "wins": 0, "draws": 0, "losses": 3, "goals_for": 0, "goals_against": 9, "played": 3}], "matches": [], "played": 6},
+            "F": {"teams": [{"name": "@revolvrx", "points": 9, "wins": 3, "draws": 0, "losses": 0, "goals_for": 8, "goals_against": 0, "played": 3}, {"name": "@pasanbb", "points": 6, "wins": 2, "draws": 0, "losses": 1, "goals_for": 6, "goals_against": 2, "played": 3}, {"name": "@Red_Means_Love", "points": 3, "wins": 1, "draws": 0, "losses": 2, "goals_for": 3, "goals_against": 6, "played": 3}, {"name": "@gyutarosolo", "points": 0, "wins": 0, "draws": 0, "losses": 3, "goals_for": 0, "goals_against": 9, "played": 3}], "matches": [], "played": 6},
+            "G": {"teams": [{"name": "@NacamaML", "points": 7, "wins": 2, "draws": 1, "losses": 0, "goals_for": 6, "goals_against": 4, "played": 3}, {"name": "@velikiyarbuz", "points": 5, "wins": 1, "draws": 2, "losses": 0, "goals_for": 7, "goals_against": 6, "played": 3}, {"name": "@kapybaran7", "points": 3, "wins": 1, "draws": 0, "losses": 2, "goals_for": 6, "goals_against": 7, "played": 3}, {"name": "@Hamster_qw", "points": 1, "wins": 0, "draws": 1, "losses": 2, "goals_for": 5, "goals_against": 7, "played": 3}], "matches": [], "played": 6},
+            "H": {"teams": [{"name": "@Dottoreji", "points": 9, "wins": 3, "draws": 0, "losses": 0, "goals_for": 9, "goals_against": 4, "played": 3}, {"name": "@panda20k", "points": 6, "wins": 2, "draws": 0, "losses": 1, "goals_for": 7, "goals_against": 4, "played": 3}, {"name": "@krer21001", "points": 3, "wins": 1, "draws": 0, "losses": 2, "goals_for": 6, "goals_against": 5, "played": 3}, {"name": "@beensuch", "points": 0, "wins": 0, "draws": 0, "losses": 3, "goals_for": 0, "goals_against": 9, "played": 3}], "matches": [], "played": 6}
+        },
+        "third_needed": 0,
+        "playoff": None,
+        "current_round": None
+    }
+    save_tournament(data)
+    print("✅ Турнир восстановлен!")
+
+# Если файла нет — восстанавливаем
+if not os.path.exists(TOURNAMENT_FILE):
+    restore_tournament()
+
+# ============================================================
 # ТАБЛИЦА ГРУПП
 # ============================================================
 
@@ -131,66 +171,41 @@ def show_groups(message):
     bot.reply_to(message, text, parse_mode="Markdown")
 
 # ============================================================
-# ПЛЕЙ-ОФФ (ПЕРЕКРЁСТНАЯ СХЕМА)
+# ОСНОВНЫЕ КОМАНДЫ
 # ============================================================
 
-def get_qualified_teams(data):
-    """Получает 1-е и 2-е места из каждой группы"""
-    qualified = {}
-    for group_name, group_data in data["groups"].items():
-        sorted_teams = sort_teams(group_data["teams"])
-        if len(sorted_teams) >= 2:
-            qualified[group_name] = {
-                "first": sorted_teams[0]["name"],
-                "second": sorted_teams[1]["name"]
-            }
-    return qualified
+@bot.message_handler(commands=['fstart'])
+def start(message):
+    user_id = message.from_user.id
+    is_owner_or_admin_flag = has_tournament_access(user_id)
+    is_owner_flag = has_full_access(user_id)
 
-def generate_playoff_pairs(qualified):
-    """Генерирует пары по перекрёстной схеме"""
-    groups = sorted(qualified.keys())
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     
-    # 1/8 финала по схеме
-    pairs = [
-        # 1 место A — 2 место B
-        {"p1": qualified["A"]["first"], "p2": qualified["B"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "A"},
-        # 1 место C — 2 место D
-        {"p1": qualified["C"]["first"], "p2": qualified["D"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "B"},
-        # 1 место B — 2 место A
-        {"p1": qualified["B"]["first"], "p2": qualified["A"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "C"},
-        # 1 место D — 2 место C
-        {"p1": qualified["D"]["first"], "p2": qualified["C"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "D"},
-        # 1 место E — 2 место F
-        {"p1": qualified["E"]["first"], "p2": qualified["F"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "E"},
-        # 1 место G — 2 место H
-        {"p1": qualified["G"]["first"], "p2": qualified["H"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "F"},
-        # 1 место F — 2 место E
-        {"p1": qualified["F"]["first"], "p2": qualified["E"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "G"},
-        # 1 место H — 2 место G
-        {"p1": qualified["H"]["first"], "p2": qualified["G"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "H"}
-    ]
+    btn_standings = types.KeyboardButton("📈 Таблица")
+    btn_playoff = types.KeyboardButton("🏆 Плей-офф")
+    markup.add(btn_standings, btn_playoff)
     
-    return pairs
+    if is_owner_flag:
+        btn_admins = types.KeyboardButton("👥 Админы")
+        markup.add(btn_admins)
 
-def get_playoff_quarterfinals(winners):
-    """Формирует 1/4 финала по схеме A-B, E-F, G-H, C-D"""
-    # winners — словарь {label: team_name}
-    return [
-        {"p1": winners.get("A"), "p2": winners.get("B"), "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "W"},
-        {"p1": winners.get("E"), "p2": winners.get("F"), "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "X"},
-        {"p1": winners.get("G"), "p2": winners.get("H"), "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "Y"},
-        {"p1": winners.get("C"), "p2": winners.get("D"), "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "Z"}
-    ]
-
-def get_playoff_semifinals(quarter_winners):
-    """Формирует 1/2 финала: W-X, Y-Z"""
-    return [
-        {"p1": quarter_winners.get("W"), "p2": quarter_winners.get("X"), "winner": None, "score1": None, "score2": None, "is_draw": False},
-        {"p1": quarter_winners.get("Y"), "p2": quarter_winners.get("Z"), "winner": None, "score1": None, "score2": None, "is_draw": False}
-    ]
+    bot.reply_to(
+        message,
+        "🏆 *ТУРНИРНЫЙ БОТ*\n\n"
+        "📌 *Команды:*\n"
+        "`/fgroups` — таблица групп\n"
+        "`/fplayoff` — плей-офф\n"
+        "`/fresult_playoff @u1 @u2 3:1` — результат в плей-офф\n"
+        "`/fresult_playoff_draw @u1 @u2 1:1 @winner` — ничья в плей-офф\n"
+        "`/fnext_round` — следующий раунд\n"
+        "`/fadmins_list` — список админов",
+        parse_mode="Markdown",
+        reply_markup=markup
+    )
 
 # ============================================================
-# КОМАНДЫ ПЛЕЙ-ОФФ
+# ПЛЕЙ-ОФФ
 # ============================================================
 
 @bot.message_handler(commands=['fplayoff'])
@@ -204,7 +219,6 @@ def start_playoff(message):
         bot.reply_to(message, "❌ Турнир не найден.")
         return
 
-    # Если плей-офф уже есть — показываем его
     if data["status"] == "playoff" and data.get("playoff"):
         show_playoff(message, data)
         return
@@ -231,14 +245,31 @@ def start_playoff(message):
         )
         return
 
-    # Получаем квалифицированные команды
-    qualified = get_qualified_teams(data)
+    # Создаём плей-офф
+    qualified = {}
+    for group_name, group_data in data["groups"].items():
+        sorted_teams = sort_teams(group_data["teams"])
+        if len(sorted_teams) >= 2:
+            qualified[group_name] = {
+                "first": sorted_teams[0]["name"],
+                "second": sorted_teams[1]["name"]
+            }
+
     if len(qualified) < 8:
-        bot.reply_to(message, f"❌ Недостаточно групп для плей-офф. Нужно 8, есть {len(qualified)}.")
+        bot.reply_to(message, f"❌ Недостаточно групп. Нужно 8, есть {len(qualified)}.")
         return
 
-    # Генерируем пары 1/8
-    pairs = generate_playoff_pairs(qualified)
+    # Пары 1/8
+    pairs = [
+        {"p1": qualified["A"]["first"], "p2": qualified["B"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "A"},
+        {"p1": qualified["C"]["first"], "p2": qualified["D"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "B"},
+        {"p1": qualified["B"]["first"], "p2": qualified["A"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "C"},
+        {"p1": qualified["D"]["first"], "p2": qualified["C"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "D"},
+        {"p1": qualified["E"]["first"], "p2": qualified["F"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "E"},
+        {"p1": qualified["G"]["first"], "p2": qualified["H"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "F"},
+        {"p1": qualified["F"]["first"], "p2": qualified["E"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "G"},
+        {"p1": qualified["H"]["first"], "p2": qualified["G"]["second"], "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "H"}
+    ]
 
     data["status"] = "playoff"
     data["playoff"] = {
@@ -246,7 +277,6 @@ def start_playoff(message):
         "pairs": pairs,
         "winners": {},
         "quarter_winners": {},
-        "semifinal_winners": [],
         "third_place": None,
         "history": {}
     }
@@ -267,27 +297,15 @@ def show_playoff(message, data):
         p2 = pair["p2"] or "?"
         if pair["winner"]:
             winner = pair["winner"]
-            if pair.get("is_draw", False):
-                status = f"🎲 {pair['score1']}:{pair['score2']} → {winner} (по буллитам)"
-            else:
-                status = f"✅ {pair['score1']}:{pair['score2']} → {winner}"
+            status = f"✅ {pair['score1']}:{pair['score2']} → {winner}"
         else:
             status = "⏳ Не сыгран"
         label = pair.get("label", "")
         label_text = f" [{label}]" if label else ""
         text += f"🔥 {i}. {p1} — {p2}{label_text} | {status}\n"
 
-    if playoff.get("history"):
-        text += "\n📜 *ИСТОРИЯ:*\n"
-        for round_name, matches in playoff["history"].items():
-            if matches:
-                text += f"\n📋 *{round_name}*\n"
-                for match in matches:
-                    text += f"  ✅ {match['p1']} {match['score1']}:{match['score2']} {match['p2']} → {match['winner']}\n"
-
     text += "\n📝 Команды:\n"
-    text += "`/fresult_playoff @user1 @user2 3:1` — записать результат\n"
-    text += "`/fresult_playoff_draw @user1 @user2 1:1 @winner` — ничья\n"
+    text += "`/fresult_playoff @user1 @user2 3:1`\n"
     text += "`/fnext_round` — следующий раунд"
 
     bot.reply_to(message, text, parse_mode="Markdown")
@@ -343,13 +361,10 @@ def result_playoff(message):
 
     found_pair["score1"] = score1
     found_pair["score2"] = score2
-    found_pair["is_draw"] = False
 
-    # Запоминаем победителя по метке
     if found_pair.get("label"):
         playoff["winners"][found_pair["label"]] = found_pair["winner"]
 
-    # Сохраняем историю
     if playoff["round"] not in playoff["history"]:
         playoff["history"][playoff["round"]] = []
     playoff["history"][playoff["round"]].append({
@@ -367,81 +382,6 @@ def result_playoff(message):
         f"✅ {found_pair['p1']} {score1} : {score2} {found_pair['p2']}\n🏆 Победитель: {found_pair['winner']}"
     )
 
-@bot.message_handler(commands=['fresult_playoff_draw'])
-def result_playoff_draw(message):
-    if not has_tournament_access(message.from_user.id):
-        bot.reply_to(message, "⛔ Доступ только у администраторов.")
-        return
-
-    data = load_tournament()
-    if not data or data["status"] != "playoff":
-        bot.reply_to(message, "❌ Плей-офф не запущен.")
-        return
-
-    parts = message.text.split()
-    if len(parts) < 5:
-        bot.reply_to(message, "❌ Используйте: `/fresult_playoff_draw @user1 @user2 1:1 @winner`", parse_mode="Markdown")
-        return
-
-    p1 = parts[1]
-    p2 = parts[2]
-
-    try:
-        score1, score2 = map(int, parts[3].split(':'))
-        if score1 < 0 or score2 < 0:
-            bot.reply_to(message, "❌ Счёт не может быть отрицательным")
-            return
-    except ValueError:
-        bot.reply_to(message, "❌ Формат счёта: 1:1")
-        return
-
-    winner = parts[4]
-    if not winner.startswith('@'):
-        bot.reply_to(message, "❌ Укажите победителя: @username")
-        return
-
-    playoff = data["playoff"]
-    found_pair = None
-    for pair in playoff["pairs"]:
-        if pair["winner"]:
-            continue
-        if (pair["p1"] == p1 and pair["p2"] == p2) or (pair["p1"] == p2 and pair["p2"] == p1):
-            found_pair = pair
-            break
-
-    if not found_pair:
-        bot.reply_to(message, "❌ Такая пара не найдена или уже сыграна.")
-        return
-
-    if winner != p1 and winner != p2:
-        bot.reply_to(message, "❌ Победитель должен быть одним из участников.")
-        return
-
-    found_pair["winner"] = winner
-    found_pair["score1"] = score1
-    found_pair["score2"] = score2
-    found_pair["is_draw"] = True
-
-    if found_pair.get("label"):
-        playoff["winners"][found_pair["label"]] = winner
-
-    if playoff["round"] not in playoff["history"]:
-        playoff["history"][playoff["round"]] = []
-    playoff["history"][playoff["round"]].append({
-        "p1": found_pair["p1"],
-        "p2": found_pair["p2"],
-        "score1": score1,
-        "score2": score2,
-        "winner": winner
-    })
-
-    save_tournament(data)
-
-    bot.reply_to(
-        message,
-        f"✅ Ничья: {found_pair['p1']} {score1} : {score2} {found_pair['p2']}\n🎲 Победитель: {winner}"
-    )
-
 @bot.message_handler(commands=['fnext_round'])
 def next_round(message):
     if not has_tournament_access(message.from_user.id):
@@ -455,18 +395,22 @@ def next_round(message):
 
     playoff = data["playoff"]
 
-    # Проверяем, все ли матчи сыграны
     for pair in playoff["pairs"]:
         if not pair["winner"]:
-            bot.reply_to(message, "⚠️ Не все матчи сыграны! Запишите результаты.")
+            bot.reply_to(message, "⚠️ Не все матчи сыграны!")
             return
 
     current_round = playoff["round"]
     winners = playoff["winners"]
 
-    # Переход к 1/4 финала
     if current_round == "1/8":
-        quarter_pairs = get_playoff_quarterfinals(winners)
+        # 1/4 финала
+        quarter_pairs = [
+            {"p1": winners.get("A"), "p2": winners.get("B"), "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "W"},
+            {"p1": winners.get("E"), "p2": winners.get("F"), "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "X"},
+            {"p1": winners.get("G"), "p2": winners.get("H"), "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "Y"},
+            {"p1": winners.get("C"), "p2": winners.get("D"), "winner": None, "score1": None, "score2": None, "is_draw": False, "label": "Z"}
+        ]
         playoff["round"] = "1/4"
         playoff["pairs"] = quarter_pairs
         playoff["winners"] = {}
@@ -474,38 +418,37 @@ def next_round(message):
         show_playoff(message, data)
         return
 
-    # Переход к 1/2 финала
     if current_round == "1/4":
-        quarter_winners = {}
+        # Полуфиналы
+        q_winners = {}
         for pair in playoff["pairs"]:
             if pair.get("label") and pair["winner"]:
-                quarter_winners[pair["label"]] = pair["winner"]
+                q_winners[pair["label"]] = pair["winner"]
 
-        semifinal_pairs = get_playoff_semifinals(quarter_winners)
+        semi_pairs = [
+            {"p1": q_winners.get("W"), "p2": q_winners.get("X"), "winner": None, "score1": None, "score2": None, "is_draw": False},
+            {"p1": q_winners.get("Y"), "p2": q_winners.get("Z"), "winner": None, "score1": None, "score2": None, "is_draw": False}
+        ]
         playoff["round"] = "1/2"
-        playoff["pairs"] = semifinal_pairs
+        playoff["pairs"] = semi_pairs
         playoff["winners"] = {}
-        playoff["quarter_winners"] = quarter_winners
         save_tournament(data)
         show_playoff(message, data)
         return
 
-    # Переход к финалу и матчу за 3-е место
     if current_round == "1/2":
-        # Победители полуфиналов
         semi_winners = []
         semi_losers = []
         for pair in playoff["pairs"]:
             if pair["winner"]:
                 semi_winners.append(pair["winner"])
-                # Определяем проигравшего
                 if pair["winner"] == pair["p1"]:
                     semi_losers.append(pair["p2"])
                 else:
                     semi_losers.append(pair["p1"])
 
         if len(semi_winners) < 2:
-            bot.reply_to(message, "⚠️ Не все полуфиналы сыграны!")
+            bot.reply_to(message, "⚠️ Полуфиналы не сыграны!")
             return
 
         # Матч за 3-е место
@@ -530,11 +473,10 @@ def next_round(message):
         text += "🥉 *Матч за 3-е место*\n"
         text += f"🔥 {semi_losers[0]} — {semi_losers[1]} | ⏳ Не сыгран\n\n"
         text += "📝 Запишите финал: `/fresult_playoff @user1 @user2 3:1`\n"
-        text += "📝 Запишите матч за 3-е место: `/fresult_third_place @user1 @user2 3:1`"
+        text += "📝 Матч за 3-е место: `/fresult_third_place @user1 @user2 3:1`"
         bot.reply_to(message, text, parse_mode="Markdown")
         return
 
-    # Завершение турнира (финал)
     if current_round == "Финал":
         if not playoff["pairs"][0]["winner"]:
             bot.reply_to(message, "⚠️ Финал ещё не сыгран!")
@@ -550,6 +492,10 @@ def next_round(message):
             text += f"🥉 *3-е место:* {playoff['third_place']['winner']}\n"
         bot.reply_to(message, text, parse_mode="Markdown")
         return
+
+# ============================================================
+# КОМАНДА ДЛЯ ТРЕТЬЕГО МЕСТА
+# ============================================================
 
 @bot.message_handler(commands=['fresult_third_place'])
 def result_third_place(message):
@@ -669,6 +615,39 @@ def result_third_place_draw(message):
     )
 
 # ============================================================
+# АДМИНЫ
+# ============================================================
+
+@bot.message_handler(commands=['fadmins_list'])
+def admins_list(message):
+    if not has_full_access(message.from_user.id):
+        bot.reply_to(message, "⛔ Только владелец может управлять админами!")
+        return
+
+    admins = load_admins()
+    text = "👥 *СПИСОК АДМИНОВ*\n\n"
+    text += f"👑 *Владелец:* {get_user_name_by_id(OWNER_ID)}\n\n"
+    if PERMANENT_ADMINS:
+        text += "🔒 *Постоянные админы:*\n"
+        for admin in PERMANENT_ADMINS:
+            text += f"• {admin['name']}\n"
+        text += "\n"
+    if not admins:
+        text += "📭 Добавленных админов нет."
+    else:
+        text += "➕ *Добавленные админы:*\n"
+        for i, admin_id in enumerate(admins, 1):
+            try:
+                user = bot.get_chat(admin_id)
+                name = user.first_name or "Пользователь"
+                if user.last_name:
+                    name += f" {user.last_name}"
+                text += f"{i}. {name}\n"
+            except:
+                text += f"{i}. ID: `{admin_id}`\n"
+    bot.reply_to(message, text, parse_mode="Markdown")
+
+# ============================================================
 # КНОПКИ
 # ============================================================
 
@@ -689,28 +668,7 @@ def handle_buttons(message):
         if not is_owner_flag:
             bot.reply_to(message, "⛔ Только владелец может управлять админами!")
             return
-        admins = load_admins()
-        text = "👥 *СПИСОК АДМИНОВ*\n\n"
-        text += f"👑 *Владелец:* {get_user_name_by_id(OWNER_ID)}\n\n"
-        if PERMANENT_ADMINS:
-            text += "🔒 *Постоянные админы:*\n"
-            for admin in PERMANENT_ADMINS:
-                text += f"• {admin['name']}\n"
-            text += "\n"
-        if not admins:
-            text += "📭 Добавленных админов нет."
-        else:
-            text += "➕ *Добавленные админы:*\n"
-            for i, admin_id in enumerate(admins, 1):
-                try:
-                    user = bot.get_chat(admin_id)
-                    name = user.first_name or "Пользователь"
-                    if user.last_name:
-                        name += f" {user.last_name}"
-                    text += f"{i}. {name}\n"
-                except:
-                    text += f"{i}. ID: `{admin_id}`\n"
-        bot.reply_to(message, text, parse_mode="Markdown")
+        admins_list(message)
 
 # ============================================================
 # ЗАПУСК
