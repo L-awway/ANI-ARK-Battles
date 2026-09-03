@@ -1,0 +1,482 @@
+{
+  "status": "playoff",
+  "total_players": 32,
+  "groups_count": 8,
+  "players": [
+    "@ZERO_HZ",
+    "@Yary_270",
+    "@ReoCopyed",
+    "@Limbibo",
+    "@noobtobias",
+    "@femfoy",
+    "@MAKAR_REVOLUTION",
+    "@ereneger13",
+    "@erofffa",
+    "@Sh4d0w_0x",
+    "@ale7xey",
+    "@Jimperqt",
+    "@jade_leech001",
+    "@egori_ii",
+    "@Vixzow",
+    "@Krist_youtube",
+    "@Bad_gyutar",
+    "@ronin2033",
+    "@stepanik123",
+    "@A_r_t_0_0_7",
+    "@revolvrx",
+    "@pasanbb",
+    "@gyutarosolo",
+    "@Red_Means_Love",
+    "@NacamaML",
+    "@velikiyarbuz",
+    "@Hamster_qw",
+    "@kapybaran7",
+    "@Dottoreji",
+    "@panda20k",
+    "@beensuch",
+    "@krer21001"
+  ],
+  "groups": {
+    "A": {
+      "teams": [
+        {
+          "name": "@Reocopyed",
+          "points": 7,
+          "wins": 2,
+          "draws": 1,
+          "losses": 0,
+          "goals_for": 5,
+          "goals_against": 3,
+          "played": 3
+        },
+        {
+          "name": "@Yary_270",
+          "points": 6,
+          "wins": 2,
+          "draws": 0,
+          "losses": 1,
+          "goals_for": 4,
+          "goals_against": 3,
+          "played": 3
+        },
+        {
+          "name": "@ZERO_HZ",
+          "points": 4,
+          "wins": 1,
+          "draws": 1,
+          "losses": 1,
+          "goals_for": 4,
+          "goals_against": 4,
+          "played": 3
+        },
+        {
+          "name": "@Limbibo",
+          "points": 0,
+          "wins": 0,
+          "draws": 0,
+          "losses": 3,
+          "goals_for": 0,
+          "goals_against": 3,
+          "played": 3
+        }
+      ],
+      "matches": [],
+      "played": 6
+    },
+    "B": {
+      "teams": [
+        {
+          "name": "@femfoy",
+          "points": 9,
+          "wins": 3,
+          "draws": 0,
+          "losses": 0,
+          "goals_for": 3,
+          "goals_against": 0,
+          "played": 3
+        },
+        {
+          "name": "@noobtobias",
+          "points": 2,
+          "wins": 0,
+          "draws": 2,
+          "losses": 1,
+          "goals_for": 2,
+          "goals_against": 3,
+          "played": 3
+        },
+        {
+          "name": "@MAKAR_REVOLUTION",
+          "points": 2,
+          "wins": 0,
+          "draws": 2,
+          "losses": 1,
+          "goals_for": 2,
+          "goals_against": 3,
+          "played": 3
+        },
+        {
+          "name": "@ereneger13",
+          "points": 2,
+          "wins": 0,
+          "draws": 2,
+          "losses": 1,
+          "goals_for": 2,
+          "goals_against": 3,
+          "played": 3
+        }
+      ],
+      "matches": [],
+      "played": 6
+    },
+    "C": {
+      "teams": [
+        {
+          "name": "@erofffa",
+          "points": 9,
+          "wins": 3,
+          "draws": 0,
+          "losses": 0,
+          "goals_for": 9,
+          "goals_against": 3,
+          "played": 3
+        },
+        {
+          "name": "@Jimperqt",
+          "points": 4,
+          "wins": 1,
+          "draws": 1,
+          "losses": 1,
+          "goals_for": 7,
+          "goals_against": 5,
+          "played": 3
+        },
+        {
+          "name": "@Sh4d0w_0x",
+          "points": 4,
+          "wins": 1,
+          "draws": 1,
+          "losses": 1,
+          "goals_for": 6,
+          "goals_against": 5,
+          "played": 3
+        },
+        {
+          "name": "@ale7xey",
+          "points": 0,
+          "wins": 0,
+          "draws": 0,
+          "losses": 3,
+          "goals_for": 0,
+          "goals_against": 9,
+          "played": 3
+        }
+      ],
+      "matches": [],
+      "played": 6
+    },
+    "D": {
+      "teams": [
+        {
+          "name": "@egori_ii",
+          "points": 7,
+          "wins": 2,
+          "draws": 1,
+          "losses": 0,
+          "goals_for": 8,
+          "goals_against": 2,
+          "played": 3
+        },
+        {
+          "name": "@jade_leech001",
+          "points": 7,
+          "wins": 2,
+          "draws": 1,
+          "losses": 0,
+          "goals_for": 8,
+          "goals_against": 4,
+          "played": 3
+        },
+        {
+          "name": "@Vixzow",
+          "points": 3,
+          "wins": 1,
+          "draws": 0,
+          "losses": 2,
+          "goals_for": 3,
+          "goals_against": 6,
+          "played": 3
+        },
+        {
+          "name": "@Krist_youtube",
+          "points": 0,
+          "wins": 0,
+          "draws": 0,
+          "losses": 3,
+          "goals_for": 2,
+          "goals_against": 9,
+          "played": 3
+        }
+      ],
+      "matches": [],
+      "played": 6
+    },
+    "E": {
+      "teams": [
+        {
+          "name": "@A_r_t_0_0_7",
+          "points": 9,
+          "wins": 3,
+          "draws": 0,
+          "losses": 0,
+          "goals_for": 9,
+          "goals_against": 2,
+          "played": 3
+        },
+        {
+          "name": "@ronin2033",
+          "points": 6,
+          "wins": 2,
+          "draws": 0,
+          "losses": 1,
+          "goals_for": 8,
+          "goals_against": 3,
+          "played": 3
+        },
+        {
+          "name": "@stepanik123",
+          "points": 3,
+          "wins": 1,
+          "draws": 0,
+          "losses": 2,
+          "goals_for": 3,
+          "goals_against": 6,
+          "played": 3
+        },
+        {
+          "name": "@Bad_Gyutaro",
+          "points": 0,
+          "wins": 0,
+          "draws": 0,
+          "losses": 3,
+          "goals_for": 0,
+          "goals_against": 9,
+          "played": 3
+        }
+      ],
+      "matches": [],
+      "played": 6
+    },
+    "F": {
+      "teams": [
+        {
+          "name": "@revolvrx",
+          "points": 9,
+          "wins": 3,
+          "draws": 0,
+          "losses": 0,
+          "goals_for": 8,
+          "goals_against": 0,
+          "played": 3
+        },
+        {
+          "name": "@pasanbb",
+          "points": 6,
+          "wins": 2,
+          "draws": 0,
+          "losses": 1,
+          "goals_for": 6,
+          "goals_against": 2,
+          "played": 3
+        },
+        {
+          "name": "@Red_Means_Love",
+          "points": 3,
+          "wins": 1,
+          "draws": 0,
+          "losses": 2,
+          "goals_for": 3,
+          "goals_against": 6,
+          "played": 3
+        },
+        {
+          "name": "@gyutarosolo",
+          "points": 0,
+          "wins": 0,
+          "draws": 0,
+          "losses": 3,
+          "goals_for": 0,
+          "goals_against": 9,
+          "played": 3
+        }
+      ],
+      "matches": [],
+      "played": 6
+    },
+    "G": {
+      "teams": [
+        {
+          "name": "@NacamaML",
+          "points": 7,
+          "wins": 2,
+          "draws": 1,
+          "losses": 0,
+          "goals_for": 6,
+          "goals_against": 4,
+          "played": 3
+        },
+        {
+          "name": "@velikiyarbuz",
+          "points": 5,
+          "wins": 1,
+          "draws": 2,
+          "losses": 0,
+          "goals_for": 7,
+          "goals_against": 6,
+          "played": 3
+        },
+        {
+          "name": "@kapybaran7",
+          "points": 3,
+          "wins": 1,
+          "draws": 0,
+          "losses": 2,
+          "goals_for": 6,
+          "goals_against": 7,
+          "played": 3
+        },
+        {
+          "name": "@Hamster_qw",
+          "points": 1,
+          "wins": 0,
+          "draws": 1,
+          "losses": 2,
+          "goals_for": 5,
+          "goals_against": 7,
+          "played": 3
+        }
+      ],
+      "matches": [],
+      "played": 6
+    },
+    "H": {
+      "teams": [
+        {
+          "name": "@Dottoreji",
+          "points": 9,
+          "wins": 3,
+          "draws": 0,
+          "losses": 0,
+          "goals_for": 9,
+          "goals_against": 4,
+          "played": 3
+        },
+        {
+          "name": "@panda20k",
+          "points": 6,
+          "wins": 2,
+          "draws": 0,
+          "losses": 1,
+          "goals_for": 7,
+          "goals_against": 4,
+          "played": 3
+        },
+        {
+          "name": "@krer21001",
+          "points": 3,
+          "wins": 1,
+          "draws": 0,
+          "losses": 2,
+          "goals_for": 6,
+          "goals_against": 5,
+          "played": 3
+        },
+        {
+          "name": "@beensuch",
+          "points": 0,
+          "wins": 0,
+          "draws": 0,
+          "losses": 3,
+          "goals_for": 0,
+          "goals_against": 9,
+          "played": 3
+        }
+      ],
+      "matches": [],
+      "played": 6
+    }
+  },
+  "third_needed": 0,
+  "playoff": {
+    "round": "1/8",
+    "pairs": [
+      {
+        "p1": "@ReoCopyed",
+        "p2": "@Sh4d0w_0x",
+        "winner": null,
+        "score1": null,
+        "score2": null,
+        "is_draw": false
+      },
+      {
+        "p1": "@femfoy",
+        "p2": "@Jimperqt",
+        "winner": null,
+        "score1": null,
+        "score2": null,
+        "is_draw": false
+      },
+      {
+        "p1": "@erofffa",
+        "p2": "@jade_leech001",
+        "winner": null,
+        "score1": null,
+        "score2": null,
+        "is_draw": false
+      },
+      {
+        "p1": "@egori_ii",
+        "p2": "@ronin2033",
+        "winner": null,
+        "score1": null,
+        "score2": null,
+        "is_draw": false
+      },
+      {
+        "p1": "@A_r_t_0_0_7",
+        "p2": "@pasanbb",
+        "winner": null,
+        "score1": null,
+        "score2": null,
+        "is_draw": false
+      },
+      {
+        "p1": "@revolvrx",
+        "p2": "@velikiyarbuz",
+        "winner": null,
+        "score1": null,
+        "score2": null,
+        "is_draw": false
+      },
+      {
+        "p1": "@NacamaML",
+        "p2": "@panda20k",
+        "winner": null,
+        "score1": null,
+        "score2": null,
+        "is_draw": false
+      },
+      {
+        "p1": "@Dottoreji",
+        "p2": "@Yary_270",
+        "winner": null,
+        "score1": null,
+        "score2": null,
+        "is_draw": false
+      }
+    ],
+    "winners": [],
+    "history": {}
+  },
+  "current_round": null
+}
